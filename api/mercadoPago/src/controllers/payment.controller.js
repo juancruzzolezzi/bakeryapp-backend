@@ -3,6 +3,17 @@ import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Se configura una sola vez al levantar el servidor (no adentro de cada request).
+// Antes solo se configuraba dentro de /create-order: si Render arrancaba una
+// instancia nueva y la primera petición que le llegaba era el webhook (en vez
+// del checkout), el SDK no tenía credenciales cargadas y la búsqueda del pago
+// para mandar el mail fallaba en silencio.
+mercadopago.configure({
+  client_id: process.env.CLIENT_ID,
+  client_secret: process.env.CLIENT_SECRET,
+  access_token: process.env.ACCESS_TOKEN,
+});
+
 export const createOrder = async (req, res) => {
   const { cartList, clientContact, contactMethod } = req.body;
 
@@ -10,13 +21,6 @@ export const createOrder = async (req, res) => {
 
 
   try {
-    mercadopago.configure({
-      client_id: process.env.CLIENT_ID,
-      client_secret: process.env.CLIENT_SECRET,
-      access_token:
-        process.env.ACCESS_TOKEN,
-    });
-
     const items = cartList.map((product) => ({
       title: product.title,
       currency_id: "ARS",
