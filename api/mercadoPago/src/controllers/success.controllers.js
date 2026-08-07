@@ -1,5 +1,4 @@
-import mercadopago from "mercadopago";
-import { sendEmail } from "../../../nodemailer/src/controllers/nodemailer.controllers.js";
+import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -9,56 +8,17 @@ export const successEvent = async (req, res) => {
     // Si el pago fue aprobado, le avisamos al frontend por query param para que vacíe el carrito
     const redirectUrl = isApproved ? `${return_Url}/?payment=success` : return_Url;
 
-    try {
-      if (isApproved) {
-        const paymentId = req.query.payment_id;
-
-        // Función para obtener detalles del pago
-        const fetchPaymentDetails = async (paymentId) => {
-          try {
-            const payment = await mercadopago.payment.findById(paymentId);
-            return payment;
-          } catch (error) {
-            console.error("Error al obtener detalles de pago:", error.message);
-            throw new Error("No se pudieron obtener los detalles del pago.");
-          }
-        };
-
-        const paymentDetails = await fetchPaymentDetails(paymentId);
-
-        // Verifica si se recibieron los detalles correctamente
-        if (!paymentDetails || !paymentDetails.body) {
-          throw new Error("Detalles de pago no disponibles.");
-        }
-
-        const products = paymentDetails.body.additional_info.items.map(
-          (item) => ({
-            title: item.title,
-            unit_price: item.unit_price,
-            quantity: item.quantity,
-          })
-        );
-
-        const totalPay = paymentDetails.body.transaction_amount;
-        const clientEmail = paymentDetails.body.payer.email;
-        const clientContact = paymentDetails.body.metadata?.contact || "";
-        const contactMethod = paymentDetails.body.metadata?.contact_method || "";
-
-        // Enviar correo con los detalles. Si falla (ej: credenciales de mail
-        // sin configurar), no debe impedir que el comprador vuelva a la tienda.
-        try {
-          await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
-          console.log("Correo enviado exitosamente");
-        } catch (emailError) {
-          console.error("No se pudo enviar el correo de confirmación:", emailError.message);
-        }
+    // Intento de respaldo: manda el mail si el webhook todavía no llegó.
+    // Si falla (credenciales, red, etc.) no debe impedir que el comprador
+    // vuelva a la tienda.
+    if (isApproved) {
+      try {
+        await sendOrderConfirmationEmail(req.query.payment_id);
+        console.log("Correo enviado exitosamente (desde /success)");
+      } catch (emailError) {
+        console.error("No se pudo enviar el correo desde /success:", emailError.message);
       }
-
-      res.redirect(redirectUrl);
-    } catch (error) {
-      console.error("Error en successEvent:", error.message);
-      // Aunque falle obtener los detalles del pago, el pago ya se cobró:
-      // igual devolvemos al comprador a la tienda en vez de una pantalla de error.
-      res.redirect(redirectUrl);
     }
+
+    res.redirect(redirectUrl);
 };

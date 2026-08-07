@@ -1,4 +1,5 @@
 import mercadopago from "mercadopago";
+import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -55,14 +56,19 @@ export const recieveWebhook = async (req, res) => {
   console.log(payment);
 
   try {
-    if (payment.type === "payment") {
-      const data = await mercadopago.payment.findById(req.query["data.id"]);
-      console.log("Payment Data:", data);
+    // El webhook es la vía confiable para saber que un pago se aprobó: no depende
+    // de que el comprador vuelva a la tienda con el navegador (a diferencia de /success).
+    const paymentId = payment?.data?.id || req.query["data.id"];
+    if (payment.type === "payment" && paymentId) {
+      await sendOrderConfirmationEmail(paymentId);
+      console.log("Correo enviado exitosamente (desde webhook)");
     }
 
     res.status(200).send("webhook");
   } catch (error) {
     console.error("Webhook Error:", error.message);
-    return res.sendStatus(500).json({ error: error.message });
+    // Respondemos 200 igual: si devolvemos error, Mercado Pago reintenta el
+    // webhook varias veces, y no queremos reintentos por una falla de mail.
+    res.status(200).send("webhook");
   }
 };
