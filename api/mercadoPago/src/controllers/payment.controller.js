@@ -23,19 +23,17 @@ export const createOrder = async (req, res) => {
       quantity: product.quantity,
     }));
 
+    const frontendUrl = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
+    const backendUrl = process.env.BACKEND_URL || "https://bakeryapp-backend-80a2.onrender.com";
+
     const preference = {
       items,
       back_urls: {
-        success: `https://bakeryapp-frontend-production.up.railway.app/success`,
-        failure: `https://bakeryapp-frontend-production.up.railway.app/failure`,
-        pending: `https://bakeryapp-frontend-production.up.railway.app/pending`,
+        success: `${backendUrl}/success`,
+        failure: `${frontendUrl}/failure`,
+        pending: `${frontendUrl}/pending`,
       },
-      redirect_urls: {
-        failure: "/feilure",
-        pending: "/pending",
-        success: `https://bakeryapp-frontend-production.up.railway.app`,
-      },
-      notification_url: `${process.env.NGROK_URL}/webhook`,
+      notification_url: `${backendUrl}/webhook`,
       auto_return: "approved",
     };
 

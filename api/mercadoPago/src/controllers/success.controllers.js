@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const successEvent = async (req, res) => {
-    const return_Url = "https://bakeryapp-frontend-production.up.railway.app";
+    const return_Url = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
 
     try {
       if (
