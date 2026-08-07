@@ -10,6 +10,11 @@ export const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  // Si Gmail no responde (red bloqueada, credenciales colgando la conexión, etc.)
+  // preferimos que falle rápido con un error claro en vez de colgar el request.
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 transporter
