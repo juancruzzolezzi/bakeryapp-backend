@@ -7,31 +7,40 @@ import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 export const debugLastPayment = async (req, res) => {
   try {
     const search = await mercadopago.payment.search({
-      qs: { sort: "date_created", criteria: "desc", limit: 1 },
+      qs: { sort: "date_created", criteria: "desc", limit: 5 },
     });
 
-    const lastPayment = search.body.results?.[0];
+    const payments = (search.body.results || []).map((p) => ({
+      id: p.id,
+      status: p.status,
+      status_detail: p.status_detail,
+      metadata: p.metadata,
+      payer_email: p.payer?.email,
+      date_created: p.date_created,
+      transaction_amount: p.transaction_amount,
+    }));
 
-    if (!lastPayment) {
+    if (payments.length === 0) {
       return res.json({ ok: false, step: "search", message: "No se encontró ningún pago." });
     }
 
-    const info = {
-      id: lastPayment.id,
-      status: lastPayment.status,
-      metadata: lastPayment.metadata,
-      payer_email: lastPayment.payer?.email,
-      date_created: lastPayment.date_created,
-    };
+    // Si se pide un id específico, probamos mandar el mail para ese; si no,
+    // solo devolvemos la lista para inspeccionar los últimos pagos.
+    const targetId = req.query.paymentId || payments.find((p) => p.status === "approved")?.id;
+
+    if (!targetId) {
+      return res.json({ ok: true, step: "search", payments, note: "No hay ningún pago 'approved' entre los últimos 5." });
+    }
 
     try {
-      await sendOrderConfirmationEmail(lastPayment.id);
-      return res.json({ ok: true, step: "sendEmail", payment: info });
+      await sendOrderConfirmationEmail(targetId);
+      return res.json({ ok: true, step: "sendEmail", targetId, payments });
     } catch (emailError) {
       return res.json({
         ok: false,
         step: "sendEmail",
-        payment: info,
+        targetId,
+        payments,
         error: emailError.message,
         stack: emailError.stack,
       });
