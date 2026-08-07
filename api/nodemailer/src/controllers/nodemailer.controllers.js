@@ -1,9 +1,9 @@
 import { transporter } from "../nodemailerConfig.js";
 import { generateHtml } from "../emailHtml.js";
 
-export const sendEmail = async ({ products, totalPay, clientEmail }) => {
+export const sendEmail = async ({ products, totalPay, clientEmail, clientContact, contactMethod }) => {
   try {
-    const emailHtml = generateHtml({ products, totalPay });
+    const emailHtml = generateHtml({ products, totalPay, clientContact, contactMethod });
 
     const email = {
       from: "augustoempresaprueba@gmail.com",

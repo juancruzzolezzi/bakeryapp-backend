@@ -34,9 +34,12 @@ router.post("/auth/register", async (req, res) => {
 router.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email);
+  // Permite iniciar sesión con el email o con el nombre de usuario
+  const user = db
+    .prepare("SELECT * FROM users WHERE email = ? OR username = ?")
+    .get(email, email);
   if (!user) {
-    return res.status(404).json({ code: "auth/user-not-found", error: "No existe un usuario con ese email" });
+    return res.status(404).json({ code: "auth/user-not-found", error: "No existe un usuario con ese email o nombre de usuario" });
   }
 
   const passwordMatches = await bcrypt.compare(password, user.password_hash);

@@ -42,9 +42,11 @@ export const successEvent = async (req, res) => {
 
         const totalPay = paymentDetails.body.transaction_amount;
         const clientEmail = paymentDetails.body.payer.email;
+        const clientContact = paymentDetails.body.metadata?.contact || "";
+        const contactMethod = paymentDetails.body.metadata?.contact_method || "";
 
         // Enviar correo con los detalles
-        await sendEmail({ products, totalPay, clientEmail });
+        await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
 
         console.log("Correo enviado exitosamente");
       }

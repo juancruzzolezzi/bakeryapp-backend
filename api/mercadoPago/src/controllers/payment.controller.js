@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const createOrder = async (req, res) => {
-  const { cartList } = req.body;
+  const { cartList, clientContact, contactMethod } = req.body;
 
   console.log(req.body);
 
@@ -17,7 +17,7 @@ export const createOrder = async (req, res) => {
     });
 
     const items = cartList.map((product) => ({
-      title: product.name,
+      title: product.title,
       currency_id: "ARS",
       unit_price: product.price,
       quantity: product.quantity,
@@ -28,10 +28,14 @@ export const createOrder = async (req, res) => {
 
     const preference = {
       items,
+      metadata: {
+        contact: clientContact || "",
+        contact_method: contactMethod || "",
+      },
       back_urls: {
         success: `${backendUrl}/success`,
-        failure: `${frontendUrl}/failure`,
-        pending: `${frontendUrl}/pending`,
+        failure: `${frontendUrl}/`,
+        pending: `${frontendUrl}/`,
       },
       notification_url: `${backendUrl}/webhook`,
       auto_return: "approved",
