@@ -52,14 +52,19 @@ export const createOrder = async (req, res) => {
 };
 
 export const recieveWebhook = async (req, res) => {
-  const payment = req.body;
-  console.log(payment);
+  const payment = req.body || {};
+  console.log("Webhook recibido - query:", req.query, "body:", payment);
 
   try {
     // El webhook es la vía confiable para saber que un pago se aprobó: no depende
     // de que el comprador vuelva a la tienda con el navegador (a diferencia de /success).
-    const paymentId = payment?.data?.id || req.query["data.id"];
-    if (payment.type === "payment" && paymentId) {
+    // Mercado Pago manda esta notificación en formatos distintos según el caso:
+    // GET con "topic"/"id" (IPN clásico), GET/POST con "type"/"data.id" (webhooks nuevos).
+    const notifType = payment.type || req.query.type || req.query.topic;
+    const paymentId =
+      payment?.data?.id || req.query["data.id"] || req.query.id;
+
+    if (notifType === "payment" && paymentId) {
       await sendOrderConfirmationEmail(paymentId);
       console.log("Correo enviado exitosamente (desde webhook)");
     }
