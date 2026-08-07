@@ -5,13 +5,12 @@ dotenv.config();
 
 export const successEvent = async (req, res) => {
     const return_Url = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
+    const isApproved = req.query && req.query.status === "approved" && req.query.payment_id;
+    // Si el pago fue aprobado, le avisamos al frontend por query param para que vacíe el carrito
+    const redirectUrl = isApproved ? `${return_Url}/?payment=success` : return_Url;
 
     try {
-      if (
-        req.query &&
-        req.query.status === "approved" &&
-        req.query.payment_id
-      ) {
+      if (isApproved) {
         const paymentId = req.query.payment_id;
 
         // Función para obtener detalles del pago
@@ -55,11 +54,11 @@ export const successEvent = async (req, res) => {
         }
       }
 
-      res.redirect(return_Url);
+      res.redirect(redirectUrl);
     } catch (error) {
       console.error("Error en successEvent:", error.message);
       // Aunque falle obtener los detalles del pago, el pago ya se cobró:
       // igual devolvemos al comprador a la tienda en vez de una pantalla de error.
-      res.redirect(return_Url);
+      res.redirect(redirectUrl);
     }
 };
