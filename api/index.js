@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import paymentRoutes from "./mercadoPago/src/routes/payment.routes.js";
 import nodemailerRoutes from "./nodemailer/src/routes/nodemailer.routes.js";
 import productsRoutes from "./db/products.routes.js";
-import authRoutes from "./db/auth.routes.js";
 import { PORT } from "./mercadoPago/config.js";
 import morgan from "morgan";
 import cors from "cors";
@@ -24,7 +23,6 @@ app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 app.use(paymentRoutes);
 app.use(nodemailerRoutes);
 app.use(productsRoutes);
-app.use(authRoutes);
 
 app.listen(PORT);
 console.log("Server listening on port", PORT);
