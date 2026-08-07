@@ -10,13 +10,16 @@ const notifiedPaymentIds = new Set();
 // si está aprobado, manda el mail de confirmación. Lo llaman tanto el webhook
 // (la vía confiable, no depende del navegador del comprador) como el redirect
 // de "success" (por si el webhook tarda o falla).
-export const sendOrderConfirmationEmail = async (paymentId) => {
-  if (!paymentId || notifiedPaymentIds.has(String(paymentId))) return;
+export const sendOrderConfirmationEmail = async (paymentId, { force = false } = {}) => {
+  if (!paymentId) return { skipped: "no paymentId" };
+  if (!force && notifiedPaymentIds.has(String(paymentId))) return { skipped: "ya notificado" };
 
   const payment = await mercadopago.payment.findById(paymentId);
   const body = payment?.body;
 
-  if (!body || body.status !== "approved") return;
+  if (!body || body.status !== "approved") {
+    return { skipped: `status es '${body?.status}', no 'approved'` };
+  }
 
   notifiedPaymentIds.add(String(paymentId));
 
@@ -31,5 +34,6 @@ export const sendOrderConfirmationEmail = async (paymentId) => {
   const clientContact = body.metadata?.contact || "";
   const contactMethod = body.metadata?.contact_method || "";
 
-  await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
+  const results = await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
+  return { results };
 };

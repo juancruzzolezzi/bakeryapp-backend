@@ -33,8 +33,8 @@ export const debugLastPayment = async (req, res) => {
     }
 
     try {
-      await sendOrderConfirmationEmail(targetId);
-      return res.json({ ok: true, step: "sendEmail", targetId, payments });
+      const outcome = await sendOrderConfirmationEmail(targetId, { force: true });
+      return res.json({ ok: true, step: "sendEmail", targetId, outcome, payments });
     } catch (emailError) {
       return res.json({
         ok: false,
