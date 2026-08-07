@@ -45,15 +45,21 @@ export const successEvent = async (req, res) => {
         const clientContact = paymentDetails.body.metadata?.contact || "";
         const contactMethod = paymentDetails.body.metadata?.contact_method || "";
 
-        // Enviar correo con los detalles
-        await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
-
-        console.log("Correo enviado exitosamente");
+        // Enviar correo con los detalles. Si falla (ej: credenciales de mail
+        // sin configurar), no debe impedir que el comprador vuelva a la tienda.
+        try {
+          await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
+          console.log("Correo enviado exitosamente");
+        } catch (emailError) {
+          console.error("No se pudo enviar el correo de confirmación:", emailError.message);
+        }
       }
 
       res.redirect(return_Url);
     } catch (error) {
       console.error("Error en successEvent:", error.message);
-      res.status(500).send("Error interno del servidor.");
+      // Aunque falle obtener los detalles del pago, el pago ya se cobró:
+      // igual devolvemos al comprador a la tienda en vez de una pantalla de error.
+      res.redirect(return_Url);
     }
 };
