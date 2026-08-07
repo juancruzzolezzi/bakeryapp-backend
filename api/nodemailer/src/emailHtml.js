@@ -1,8 +1,7 @@
 export const generateHtml = ({ products, totalPay, clientContact, contactMethod }) => {
   const contactLabel = contactMethod === "whatsapp" ? "WhatsApp" : "Instagram";
   return `
-    <p>¡Gracias por tu compra en BakeryApp!</p>
-    <img />
+    <p>¡Nuevo pedido confirmado en BakeryApp!</p>
     <p>Detalles de la compra:</p>
     <ul>
       ${products
@@ -10,7 +9,7 @@ export const generateHtml = ({ products, totalPay, clientContact, contactMethod 
         .join("")}
     </ul>
     <p>Total pagado: $${totalPay}</p>
-    ${clientContact ? `<p>${contactLabel} del comprador: ${clientContact}</p>` : ""}
+    ${clientContact ? `<p><strong>Contactar por ${contactLabel}: ${clientContact}</strong></p>` : ""}
     <p>¡Esperamos que disfrutes de nuestros ricos sabores!</p>
     `;
 };
