@@ -27,6 +27,7 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
     title: item.title,
     unit_price: item.unit_price,
     quantity: item.quantity,
+    picture_url: item.picture_url || "",
   }));
 
   const totalPay = body.transaction_amount;

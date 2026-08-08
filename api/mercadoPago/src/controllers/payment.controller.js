@@ -26,6 +26,7 @@ export const createOrder = async (req, res) => {
       currency_id: "ARS",
       unit_price: product.price,
       quantity: product.quantity,
+      picture_url: product.images?.[0] || "",
     }));
 
     const frontendUrl = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
