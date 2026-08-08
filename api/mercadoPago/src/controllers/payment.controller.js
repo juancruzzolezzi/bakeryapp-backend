@@ -32,11 +32,18 @@ export const createOrder = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
     const backendUrl = process.env.BACKEND_URL || "https://bakeryapp-backend-80a2.onrender.com";
 
+    // Mercado Pago no garantiza devolver picture_url en additional_info.items
+    // al consultar el pago después (es un campo pensado para su propio checkout,
+    // no para que lo leamos nosotros de vuelta). Guardamos las fotos nosotros
+    // mismos en metadata, como ya hacemos con el contacto.
+    const productImages = cartList.map((product) => product.images?.[0] || "");
+
     const preference = {
       items,
       metadata: {
         contact: clientContact || "",
         contact_method: contactMethod || "",
+        product_images: JSON.stringify(productImages),
       },
       back_urls: {
         success: `${backendUrl}/success`,

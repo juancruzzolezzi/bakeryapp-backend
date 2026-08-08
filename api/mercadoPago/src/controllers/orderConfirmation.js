@@ -23,11 +23,21 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
 
   notifiedPaymentIds.add(String(paymentId));
 
-  const products = (body.additional_info?.items || []).map((item) => ({
+  // Las fotos las guardamos nosotros en metadata al crear la preferencia
+  // (ver payment.controller.js) porque Mercado Pago no garantiza devolver
+  // picture_url en additional_info.items.
+  let productImages = [];
+  try {
+    productImages = JSON.parse(body.metadata?.product_images || "[]");
+  } catch {
+    productImages = [];
+  }
+
+  const products = (body.additional_info?.items || []).map((item, i) => ({
     title: item.title,
     unit_price: item.unit_price,
     quantity: item.quantity,
-    picture_url: item.picture_url || "",
+    picture_url: productImages[i] || "",
   }));
 
   const totalPay = body.transaction_amount;
