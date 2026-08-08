@@ -21,7 +21,8 @@
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3",
     "mercadopago": "^1.5.17",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "resend": "^6.18.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
