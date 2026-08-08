@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createOrder, recieveWebhook } from "../controllers/payment.controller.js";
 import { successEvent } from "../controllers/success.controllers.js";
+import { debugLastPayment } from "../controllers/debug.controller.js";
 
 const router = Router();
 
@@ -14,5 +15,8 @@ router.get("/pending", (req, res) => res.send("pending"));
 
 router.post("/webhook", recieveWebhook);
 router.get("/webhook", recieveWebhook);
+
+// TEMPORAL: ver debug.controller.js
+router.get("/debug/last-payment", debugLastPayment);
 
 export default router;
