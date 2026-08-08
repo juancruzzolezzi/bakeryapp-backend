@@ -1,7 +1,7 @@
-// Logo/ícono de la marca que aparece arriba de los mails.
+// Foto de fondo del sitio, usada como "foto de perfil" de la marca en los mails.
 const LOGO_URL = process.env.FRONTEND_URL
-  ? `${process.env.FRONTEND_URL}/un-pan.png`
-  : "https://bakeryapp-frontend.vercel.app/un-pan.png";
+  ? `${process.env.FRONTEND_URL}/Portada.jpg`
+  : "https://bakeryapp-frontend.vercel.app/Portada.jpg";
 
 const productListHtml = (products) =>
   products
@@ -26,7 +26,7 @@ const productListHtml = (products) =>
 export const generateBuyerHtml = ({ products, totalPay }) => {
   return `
     <div style="text-align: center; margin-bottom: 16px;">
-      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%;" />
+      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
     </div>
     <p>¡Gracias por tu compra en BakeryApp!</p>
     <p>Detalles de tu pedido:</p>
@@ -41,7 +41,7 @@ export const generateOwnerHtml = ({ products, totalPay, clientContact, contactMe
   const contactLabel = contactMethod === "whatsapp" ? "WhatsApp" : "Instagram";
   return `
     <div style="text-align: center; margin-bottom: 16px;">
-      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%;" />
+      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
     </div>
     <p>¡Nuevo pedido en BakeryApp!</p>
     ${clientContact ? `<p><strong>Contactar por ${contactLabel}: ${clientContact}</strong></p>` : ""}
