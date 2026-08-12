@@ -44,7 +44,17 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
   const clientEmail = body.payer?.email;
   const clientContact = body.metadata?.contact || "";
   const contactMethod = body.metadata?.contact_method || "";
+  const deliveryType = body.metadata?.delivery_type || "";
+  const address = body.metadata?.address || "";
 
-  const results = await sendEmail({ products, totalPay, clientEmail, clientContact, contactMethod });
+  const results = await sendEmail({
+    products,
+    totalPay,
+    clientEmail,
+    clientContact,
+    contactMethod,
+    deliveryType,
+    address,
+  });
   return { results };
 };

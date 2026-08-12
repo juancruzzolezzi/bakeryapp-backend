@@ -22,8 +22,11 @@ const productListHtml = (products) =>
     )
     .join("");
 
+const deliveryLabel = (deliveryType) =>
+  deliveryType === "takeaway" ? "Retiro en el local (Take Away)" : "Delivery";
+
 // Mail para el comprador: confirmación de compra, sin datos de contacto propios.
-export const generateBuyerHtml = ({ products, totalPay }) => {
+export const generateBuyerHtml = ({ products, totalPay, deliveryType, address }) => {
   return `
     <div style="text-align: center; margin-bottom: 16px;">
       <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
@@ -32,12 +35,14 @@ export const generateBuyerHtml = ({ products, totalPay }) => {
     <p>Detalles de tu pedido:</p>
     <table cellpadding="0" cellspacing="0">${productListHtml(products)}</table>
     <p>Total pagado: $${totalPay}</p>
+    ${deliveryType ? `<p><strong>Entrega:</strong> ${deliveryLabel(deliveryType)}</p>` : ""}
+    ${deliveryType === "delivery" && address ? `<p><strong>Dirección:</strong> ${address}</p>` : ""}
     <p>En breve te vamos a contactar para coordinar la entrega. ¡Gracias por elegirnos!</p>
     `;
 };
 
 // Mail para el dueño de la tienda: aviso de pedido nuevo con el contacto del comprador bien visible.
-export const generateOwnerHtml = ({ products, totalPay, clientContact, contactMethod }) => {
+export const generateOwnerHtml = ({ products, totalPay, clientContact, contactMethod, deliveryType, address }) => {
   const contactLabel = contactMethod === "whatsapp" ? "WhatsApp" : "Instagram";
   return `
     <div style="text-align: center; margin-bottom: 16px;">
@@ -45,6 +50,8 @@ export const generateOwnerHtml = ({ products, totalPay, clientContact, contactMe
     </div>
     <p>¡Nuevo pedido en BakeryApp!</p>
     ${clientContact ? `<p><strong>Contactar por ${contactLabel}: ${clientContact}</strong></p>` : ""}
+    ${deliveryType ? `<p><strong>Entrega:</strong> ${deliveryLabel(deliveryType)}</p>` : ""}
+    ${deliveryType === "delivery" && address ? `<p><strong>Dirección de entrega:</strong> ${address}</p>` : ""}
     <p>Detalles de la compra:</p>
     <table cellpadding="0" cellspacing="0">${productListHtml(products)}</table>
     <p>Total pagado: $${totalPay}</p>

@@ -14,8 +14,12 @@ mercadopago.configure({
   access_token: process.env.ACCESS_TOKEN,
 });
 
+// Costo fijo de envío a domicilio. Se suma como un item más de la preferencia
+// para que Mercado Pago cobre el total correcto (subtotal + envío).
+const DELIVERY_FEE = 2000;
+
 export const createOrder = async (req, res) => {
-  const { cartList, clientContact, contactMethod } = req.body;
+  const { cartList, clientContact, contactMethod, deliveryType, address } = req.body;
 
   console.log(req.body);
 
@@ -38,11 +42,25 @@ export const createOrder = async (req, res) => {
     // mismos en metadata, como ya hacemos con el contacto.
     const productImages = cartList.map((product) => product.images?.[0] || "");
 
+    // Si pide delivery, se suma el costo de envío como un item más (así el
+    // monto que cobra Mercado Pago ya incluye el envío, sin pasos manuales).
+    if (deliveryType === "delivery") {
+      items.push({
+        title: "Costo de envío",
+        currency_id: "ARS",
+        unit_price: DELIVERY_FEE,
+        quantity: 1,
+      });
+      productImages.push("");
+    }
+
     const preference = {
       items,
       metadata: {
         contact: clientContact || "",
         contact_method: contactMethod || "",
+        delivery_type: deliveryType || "",
+        address: deliveryType === "delivery" ? (address || "") : "",
         product_images: JSON.stringify(productImages),
       },
       back_urls: {
