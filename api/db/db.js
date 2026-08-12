@@ -43,7 +43,7 @@ if (productCount === 0) {
   categories.forEach((name) => insertCategory.run(name));
 
   const products = [
-    ["Cookies de Chocolate", "Cookies caseras con chips de chocolate", 2000, "Cookies", "https://picsum.photos/seed/cookies1/400/300"],
+    ["Cookies de Chocolate", "Cookies caseras con chips de chocolate (por unidad)", 2000, "Cookies", "https://picsum.photos/seed/cookies1/400/300"],
     ["Torta de Chocolate", "Torta húmeda de chocolate con ganache", 13000, "Tortas", "https://picsum.photos/seed/torta1/400/300"],
     ["Medialunas de Manteca", "Docena de medialunas artesanales", 10000, "Facturas", "https://picsum.photos/seed/facturas1/400/300"],
     ["Trufas de Chocolate", "Caja x6 trufas artesanales", 8000, "Trufas", "https://picsum.photos/seed/trufas1/400/300"],
