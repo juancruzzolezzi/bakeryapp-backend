@@ -65,26 +65,26 @@ const nuevasCategorias = ["Sin TACC", "Vegano"];
 nuevasCategorias.forEach((name) => insertCategoryIfMissing.run(name));
 
 const nuevosProductos = [
-  ["Alfajores de Maicena", "Docena de alfajores rellenos de dulce de leche", 10000, "Cookies", "http://localhost:3000/uploads/alfajores.jpg"],
-  ["Brownies con Nueces", "Bandeja x6 brownies húmedos con nueces", 6000, "Tortas", "http://localhost:3000/uploads/brownie.webp"],
-  ["Cookies de Avena y Pasas", "Docena de cookies caseras de avena y pasas de uva", 12000, "Cookies", "http://localhost:3000/uploads/cookiesavenaypasas.jpg"],
-  ["Torta Red Velvet", "Torta red velvet con frosting de queso crema", 15000, "Tortas", "http://localhost:3000/uploads/tortaredvelvet.jpg"],
-  ["Cheesecake de Frutos Rojos", "Cheesecake horneado con coulis de frutos rojos", 15000, "Tortas", "http://localhost:3000/uploads/CHEESECAKE-CON-FRUTOS-ROJOS.webp"],
-  ["Facturas Surtidas", "Docena surtida de facturas (medialunas, vigilantes, cañoncitos)", 12000, "Facturas", "http://localhost:3000/uploads/docenasurtida.jpg"],
-  ["Media Docena Surtida", "Media docena surtida de facturas (medialunas, vigilantes y cañoncitos)", 7000, "Facturas", "http://localhost:3000/uploads/mediadocenasurtida.jpg"],
-  ["Trufas de Maracuyá", "Caja x6 trufas artesanales de maracuyá", 8000, "Trufas", "http://localhost:3000/uploads/trufamaracuya.jpg"],
+  ["Alfajores de Maicena", "Docena de alfajores rellenos de dulce de leche", 10000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores.jpg"],
+  ["Brownies con Nueces", "Bandeja x6 brownies húmedos con nueces", 6000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/brownie.webp"],
+  ["Cookies de Avena y Pasas", "Docena de cookies caseras de avena y pasas de uva", 12000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesavenaypasas.jpg"],
+  ["Torta Red Velvet", "Torta red velvet con frosting de queso crema", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/tortaredvelvet.jpg"],
+  ["Cheesecake de Frutos Rojos", "Cheesecake horneado con coulis de frutos rojos", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/CHEESECAKE-CON-FRUTOS-ROJOS.webp"],
+  ["Facturas Surtidas", "Docena surtida de facturas (medialunas, vigilantes, cañoncitos)", 12000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/docenasurtida.jpg"],
+  ["Media Docena Surtida", "Media docena surtida de facturas (medialunas, vigilantes y cañoncitos)", 7000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/mediadocenasurtida.jpg"],
+  ["Trufas de Maracuyá", "Caja x6 trufas artesanales de maracuyá", 8000, "Trufas", "https://bakeryapp-backend-80a2.onrender.com/uploads/trufamaracuya.jpg"],
 
   // Sección Sin TACC
-  ["Cookies de Chocolate Sin TACC", "Docena de cookies sin gluten con chips de chocolate", 15000, "Sin TACC", "http://localhost:3000/uploads/cookiesintacc.jpg"],
-  ["Brownies Sin TACC", "Bandeja x6 brownies sin gluten con harina de almendras", 8000, "Sin TACC", "http://localhost:3000/uploads/browniesingluten.jpg"],
-  ["Torta de Zanahoria Sin TACC", "Torta de zanahoria sin gluten con glaseado de queso crema", 16000, "Sin TACC", "http://localhost:3000/uploads/tartazanahoriasingluten.jpg"],
-  ["Facturas Sin TACC", "Docena de facturas sin gluten (medialunas y vigilantes)", 16000, "Sin TACC", "http://localhost:3000/uploads/facturassingluten.jpg"],
+  ["Cookies de Chocolate Sin TACC", "Docena de cookies sin gluten con chips de chocolate", 15000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesintacc.jpg"],
+  ["Brownies Sin TACC", "Bandeja x6 brownies sin gluten con harina de almendras", 8000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/browniesingluten.jpg"],
+  ["Torta de Zanahoria Sin TACC", "Torta de zanahoria sin gluten con glaseado de queso crema", 16000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/tartazanahoriasingluten.jpg"],
+  ["Facturas Sin TACC", "Docena de facturas sin gluten (medialunas y vigilantes)", 16000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/facturassingluten.jpg"],
 
   // Sección Vegana
-  ["Cookies Veganas de Chocolate", "Docena de cookies veganas con chips de chocolate", 14000, "Vegano", "http://localhost:3000/uploads/cookievegana.jpg"],
-  ["Torta Vegana de Manzana y Canela", "Torta vegana de manzana y canela, sin huevo ni lácteos", 15000, "Vegano", "http://localhost:3000/uploads/tartamanzanavegana.png"],
-  ["Brownies Veganos", "Bandeja x6 brownies veganos con cacao intenso", 7500, "Vegano", "http://localhost:3000/uploads/brownievegano.jpg"],
-  ["Trufas Veganas de Coco", "Caja x6 trufas veganas de coco y chocolate", 9000, "Vegano", "http://localhost:3000/uploads/trufasveganascoco.jpg"],
+  ["Cookies Veganas de Chocolate", "Docena de cookies veganas con chips de chocolate", 14000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookievegana.jpg"],
+  ["Torta Vegana de Manzana y Canela", "Torta vegana de manzana y canela, sin huevo ni lácteos", 15000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/tartamanzanavegana.png"],
+  ["Brownies Veganos", "Bandeja x6 brownies veganos con cacao intenso", 7500, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/brownievegano.jpg"],
+  ["Trufas Veganas de Coco", "Caja x6 trufas veganas de coco y chocolate", 9000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/trufasveganascoco.jpg"],
 ];
 
 nuevosProductos.forEach(([title, description, price, category, image]) => {
