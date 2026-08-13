@@ -39,14 +39,14 @@ if (productCount === 0) {
     "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
   );
 
-  const categories = ["Facturas", "Tortas", "Cookies", "Trufas"];
+  const categories = ["Facturas", "Tortas", "Cookies", "Alfajor"];
   categories.forEach((name) => insertCategory.run(name));
 
   const products = [
     ["Cookies de Chocolate", "Cookies caseras con chips de chocolate (por unidad)", 2000, "Cookies", "https://picsum.photos/seed/cookies1/400/300"],
     ["Torta de Chocolate", "Torta húmeda de chocolate con ganache", 13000, "Tortas", "https://picsum.photos/seed/torta1/400/300"],
     ["Medialunas de Manteca", "Docena de medialunas artesanales", 10000, "Facturas", "https://picsum.photos/seed/facturas1/400/300"],
-    ["Trufas de Chocolate", "Caja x6 trufas artesanales", 8000, "Trufas", "https://picsum.photos/seed/trufas1/400/300"],
+    ["Alfajor de Maicena", "Pack x6 alfajores de maicena con dulce de leche y coco rallado", 9000, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores-maicena.webp"],
   ];
   products.forEach((p) => insertProduct.run(...p));
 
@@ -65,14 +65,16 @@ const nuevasCategorias = ["Sin TACC", "Vegano"];
 nuevasCategorias.forEach((name) => insertCategoryIfMissing.run(name));
 
 const nuevosProductos = [
-  ["Alfajores de Maicena", "Docena de alfajores rellenos de dulce de leche", 10000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores.jpg"],
   ["Brownies con Nueces", "Bandeja x6 brownies húmedos con nueces", 6000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/brownie.webp"],
   ["Cookies de Avena y Pasas", "Docena de cookies caseras de avena y pasas de uva", 12000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesavenaypasas.jpg"],
   ["Torta Red Velvet", "Torta red velvet con frosting de queso crema", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/tortaredvelvet.jpg"],
   ["Cheesecake de Frutos Rojos", "Cheesecake horneado con coulis de frutos rojos", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/CHEESECAKE-CON-FRUTOS-ROJOS.webp"],
   ["Facturas Surtidas", "Docena surtida de facturas", 12000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/docenasurtida.jpg"],
   ["Media Docena Surtida", "Media docena surtida de facturas (medialunas, vigilantes y cañoncitos)", 7000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/mediadocenasurtida.jpg"],
-  ["Trufas de Maracuyá", "Caja x6 trufas artesanales de maracuyá", 8000, "Trufas", "https://bakeryapp-backend-80a2.onrender.com/uploads/trufamaracuya.jpg"],
+
+  // Sección Alfajor
+  ["Alfajor de Dulce de Leche", "Bañado en chocolate, relleno de dulce de leche (por unidad)", 2200, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores.jpg"],
+  ["Alfajor de Fruta", "Bañado en chocolate blanco, relleno de dulce de frutos rojos (por unidad)", 2400, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajorfruta.jpg"],
 
   // Sección Sin TACC
   ["Cookies de Chocolate Sin TACC", "Docena de cookies sin gluten con chips de chocolate", 15000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesintacc.jpg"],

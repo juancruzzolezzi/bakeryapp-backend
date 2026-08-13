@@ -65,8 +65,11 @@ export const createOrder = async (req, res) => {
       },
       back_urls: {
         success: `${backendUrl}/success`,
-        failure: `${frontendUrl}/`,
-        pending: `${frontendUrl}/`,
+        // El carrito NO se toca acá (solo se vacía si el pago se aprueba,
+        // ver /success): así, si el comprador vuelve sin haber pagado,
+        // encuentra el carrito tal cual lo dejó.
+        failure: `${frontendUrl}/?payment=failure`,
+        pending: `${frontendUrl}/?payment=pending`,
       },
       notification_url: `${backendUrl}/webhook`,
       auto_return: "approved",
