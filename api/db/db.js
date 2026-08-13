@@ -70,7 +70,7 @@ const nuevosProductos = [
   ["Cookies de Avena y Pasas", "Docena de cookies caseras de avena y pasas de uva", 12000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesavenaypasas.jpg"],
   ["Torta Red Velvet", "Torta red velvet con frosting de queso crema", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/tortaredvelvet.jpg"],
   ["Cheesecake de Frutos Rojos", "Cheesecake horneado con coulis de frutos rojos", 15000, "Tortas", "https://bakeryapp-backend-80a2.onrender.com/uploads/CHEESECAKE-CON-FRUTOS-ROJOS.webp"],
-  ["Facturas Surtidas", "Docena surtida de facturas (medialunas, vigilantes, cañoncitos)", 12000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/docenasurtida.jpg"],
+  ["Facturas Surtidas", "Docena surtida de facturas", 12000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/docenasurtida.jpg"],
   ["Media Docena Surtida", "Media docena surtida de facturas (medialunas, vigilantes y cañoncitos)", 7000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/mediadocenasurtida.jpg"],
   ["Trufas de Maracuyá", "Caja x6 trufas artesanales de maracuyá", 8000, "Trufas", "https://bakeryapp-backend-80a2.onrender.com/uploads/trufamaracuya.jpg"],
 
