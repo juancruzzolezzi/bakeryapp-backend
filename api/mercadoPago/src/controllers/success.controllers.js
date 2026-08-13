@@ -5,8 +5,12 @@ dotenv.config();
 export const successEvent = async (req, res) => {
     const return_Url = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
     const isApproved = req.query && req.query.status === "approved" && req.query.payment_id;
-    // Si el pago fue aprobado, le avisamos al frontend por query param para que vacíe el carrito
-    const redirectUrl = isApproved ? `${return_Url}/?payment=success` : return_Url;
+    // Le avisamos al frontend por query param si fue aprobado (vacía el
+    // carrito y muestra el mensaje de compra exitosa) o no (mensaje de
+    // error, sin tocar el carrito).
+    const redirectUrl = isApproved
+      ? `${return_Url}/?payment=success`
+      : `${return_Url}/?payment=failure`;
 
     // Intento de respaldo: manda el mail si el webhook todavía no llegó.
     // Si falla (credenciales, red, etc.) no debe impedir que el comprador
