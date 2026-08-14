@@ -68,8 +68,8 @@ export const createOrder = async (req, res) => {
         // El carrito NO se toca acá (solo se vacía si el pago se aprueba,
         // ver /success): así, si el comprador vuelve sin haber pagado,
         // encuentra el carrito tal cual lo dejó.
-        failure: `${frontendUrl}/?payment=failure`,
-        pending: `${frontendUrl}/?payment=pending`,
+        failure: `${frontendUrl}/products?payment=failure`,
+        pending: `${frontendUrl}/products?payment=pending`,
       },
       notification_url: `${backendUrl}/webhook`,
       auto_return: "approved",
