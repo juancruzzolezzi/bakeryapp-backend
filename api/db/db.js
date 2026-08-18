@@ -39,14 +39,14 @@ if (productCount === 0) {
     "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
   );
 
-  const categories = ["Facturas", "Tortas", "Cookies", "Alfajor"];
+  const categories = ["Facturas", "Tortas", "Cookies", "Alfajores"];
   categories.forEach((name) => insertCategory.run(name));
 
   const products = [
     ["Cookies de Chocolate", "Cookies caseras con chips de chocolate (por unidad)", 2000, "Cookies", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookie.jpg"],
     ["Torta de Chocolate", "Torta húmeda de chocolate con ganache", 13000, "Tortas", "https://picsum.photos/seed/torta1/400/300"],
     ["Medialunas de Manteca", "Docena de medialunas artesanales", 10000, "Facturas", "https://picsum.photos/seed/facturas1/400/300"],
-    ["Alfajor de Maicena", "Pack x6 alfajores de maicena con dulce de leche y coco rallado", 9000, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores-maicena.webp"],
+    ["Alfajor de Maicena", "Pack x6 alfajores de maicena con dulce de leche y coco rallado", 9000, "Alfajores", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores-maicena.webp"],
   ];
   products.forEach((p) => insertProduct.run(...p));
 
@@ -61,8 +61,13 @@ const insertProductIfMissing = db.prepare(
   "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
 );
 
-const nuevasCategorias = ["Sin TACC", "Vegano"];
+const nuevasCategorias = ["Sin TACC", "Vegano", "Alfajores"];
 nuevasCategorias.forEach((name) => insertCategoryIfMissing.run(name));
+
+// La categoría se renombró de "Alfajor" a "Alfajores": se actualiza acá
+// para no dejar la categoría vieja huérfana en instalaciones ya sembradas.
+db.prepare("UPDATE categories SET name = 'Alfajores' WHERE name = 'Alfajor'").run();
+db.prepare("UPDATE products SET category = 'Alfajores' WHERE category = 'Alfajor'").run();
 
 // Nota: estos títulos deben coincidir siempre con los títulos actuales en
 // products (ver PUT /products/:id). Si se renombra un producto ya
@@ -77,9 +82,9 @@ const nuevosProductos = [
   ["Facturas Surtidas", "Docena surtida de facturas", 15000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/docenasurtida.jpg"],
   ["Media Docena Surtida", "Media docena surtida de facturas (medialunas, vigilantes y cañoncitos)", 9000, "Facturas", "https://bakeryapp-backend-80a2.onrender.com/uploads/mediadocenasurtida.jpg"],
 
-  // Sección Alfajor
-  ["Alfajor de Dulce de Leche", "Bañado en chocolate, relleno de dulce de leche (por unidad)", 2500, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores.jpg"],
-  ["Alfajor de Fruta", "Bañado en chocolate blanco, relleno de dulce de frutos rojos (por unidad)", 2500, "Alfajor", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajorfruta.jpg"],
+  // Sección Alfajores
+  ["Alfajor de Dulce de Leche", "Bañado en chocolate, relleno de dulce de leche (por unidad)", 2500, "Alfajores", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajores.jpg"],
+  ["Alfajor de Fruta", "Bañado en chocolate blanco, relleno de dulce de frutos rojos (por unidad)", 2500, "Alfajores", "https://bakeryapp-backend-80a2.onrender.com/uploads/alfajorfruta.jpg"],
 
   // Sección Sin TACC
   ["Cookie de Chocolate Sin TACC", "Cookie sin gluten con chips de chocolate (por unidad)", 4000, "Sin TACC", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookiesintacc.jpg"],
