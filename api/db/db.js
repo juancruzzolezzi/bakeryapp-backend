@@ -61,13 +61,15 @@ const insertProductIfMissing = db.prepare(
   "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
 );
 
+// La categoría se renombró de "Alfajor" a "Alfajores": hay que renombrarla
+// ANTES de insertar "Alfajores" como categoría nueva, porque el UPDATE
+// choca con la constraint UNIQUE si la fila "Alfajores" ya existe.
+db.prepare("UPDATE OR IGNORE categories SET name = 'Alfajores' WHERE name = 'Alfajor'").run();
+db.prepare("DELETE FROM categories WHERE name = 'Alfajor'").run();
+db.prepare("UPDATE products SET category = 'Alfajores' WHERE category = 'Alfajor'").run();
+
 const nuevasCategorias = ["Sin TACC", "Vegano", "Alfajores"];
 nuevasCategorias.forEach((name) => insertCategoryIfMissing.run(name));
-
-// La categoría se renombró de "Alfajor" a "Alfajores": se actualiza acá
-// para no dejar la categoría vieja huérfana en instalaciones ya sembradas.
-db.prepare("UPDATE categories SET name = 'Alfajores' WHERE name = 'Alfajor'").run();
-db.prepare("UPDATE products SET category = 'Alfajores' WHERE category = 'Alfajor'").run();
 
 // Nota: estos títulos deben coincidir siempre con los títulos actuales en
 // products (ver PUT /products/:id). Si se renombra un producto ya
