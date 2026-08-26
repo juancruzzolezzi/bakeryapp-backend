@@ -3,9 +3,22 @@ import { db } from "./db.js";
 
 const router = Router();
 
+// Los statements se preparan UNA sola vez acá arriba (no adentro de cada
+// handler): better-sqlite3 recomienda "preparar una vez, ejecutar muchas",
+// y /products en particular se pide en cada visita a la página.
+const selectAllProducts = db.prepare("SELECT * FROM products");
+const selectAllCategoryNames = db.prepare("SELECT name FROM categories");
+const insertProduct = db.prepare(
+  "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
+);
+const updateProduct = db.prepare(
+  "UPDATE products SET title = ?, description = ?, price = ?, category = ?, image = ? WHERE id = ?"
+);
+const deleteProduct = db.prepare("DELETE FROM products WHERE id = ?");
+
 // GET /products
 router.get("/products", (req, res) => {
-  const rows = db.prepare("SELECT * FROM products").all();
+  const rows = selectAllProducts.all();
   const products = rows.map((p) => ({
     id: String(p.id),
     title: p.title,
@@ -19,7 +32,7 @@ router.get("/products", (req, res) => {
 
 // GET /categories
 router.get("/categories", (req, res) => {
-  const rows = db.prepare("SELECT name FROM categories").all();
+  const rows = selectAllCategoryNames.all();
   res.json(rows.map((r) => r.name));
 });
 
@@ -29,26 +42,20 @@ router.post("/products", (req, res) => {
   if (!title || !price || !category) {
     return res.status(400).json({ error: "title, price y category son requeridos" });
   }
-  const result = db
-    .prepare(
-      "INSERT INTO products (title, description, price, category, image) VALUES (?, ?, ?, ?, ?)"
-    )
-    .run(title, description ?? "", price, category, image ?? "");
+  const result = insertProduct.run(title, description ?? "", price, category, image ?? "");
   res.status(201).json({ id: result.lastInsertRowid });
 });
 
 // PUT /products/:id
 router.put("/products/:id", (req, res) => {
   const { title, description, price, category, image } = req.body;
-  db.prepare(
-    "UPDATE products SET title = ?, description = ?, price = ?, category = ?, image = ? WHERE id = ?"
-  ).run(title, description, price, category, image, req.params.id);
+  updateProduct.run(title, description, price, category, image, req.params.id);
   res.json({ ok: true });
 });
 
 // DELETE /products/:id
 router.delete("/products/:id", (req, res) => {
-  db.prepare("DELETE FROM products WHERE id = ?").run(req.params.id);
+  deleteProduct.run(req.params.id);
   res.json({ ok: true });
 });
 

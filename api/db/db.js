@@ -96,7 +96,7 @@ const nuevosProductos = [
 
   // Sección Vegana
   ["Cookie Vegana de Chocolate", "Cookie vegana con chips de chocolate (por unidad)", 3000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/cookievegana.jpg"],
-  ["Torta Vegana de Manzana y Canela", "Torta vegana de manzana y canela, sin huevo ni lácteos", 15000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/tartamanzanavegana.png"],
+  ["Torta Vegana de Manzana y Canela", "Torta vegana de manzana y canela, sin huevo ni lácteos", 15000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/tartamanzanavegana.jpg"],
   ["Brownie Vegano", "Brownie vegano con cacao intenso (por unidad)", 3000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/brownievegano.jpg"],
   ["Trufas Veganas de Coco", "Caja x6 trufas veganas de coco y chocolate", 9000, "Vegano", "https://bakeryapp-backend-80a2.onrender.com/uploads/trufasveganascoco.jpg"],
 ];
