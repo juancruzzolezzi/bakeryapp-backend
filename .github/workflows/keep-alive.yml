@@ -1,0 +1,19 @@
+name: Keep backend awake
+
+# Render (plan gratuito) apaga el servidor después de ~15 minutos sin
+# tráfico, y tarda hasta ~50s en volver a levantarlo con la próxima
+# petición real. Esto le manda un ping liviano cada 10 minutos para que
+# nunca llegue a dormirse (y de paso, para que la primera visita del día
+# no tenga que esperar ese arranque en frío) — nada que dependa de la
+# base de datos, solo confirma que el servidor está arriba.
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: curl -sf --max-time 30 https://bakeryapp-backend-80a2.onrender.com/health

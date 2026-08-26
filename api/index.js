@@ -30,6 +30,11 @@ app.use(
     maxAge: "7d",
   })
 );
+// Para el "ping" que lo mantiene despierto (ver .github/workflows en este
+// repo): no toca la base de datos, solo confirma que el servidor está
+// arriba, lo más liviano posible.
+app.get("/health", (req, res) => res.status(200).send("ok"));
+
 app.use(paymentRoutes);
 app.use(nodemailerRoutes);
 app.use(productsRoutes);
