@@ -19,7 +19,15 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+// "maxAge": las fotos de producto no cambian de nombre cuando se editan
+// (se pisa el mismo archivo), así que sin esto el navegador las volvía a
+// descargar en cada visita en vez de servirlas desde su caché local.
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "public/uploads"), {
+    maxAge: "7d",
+  })
+);
 app.use(paymentRoutes);
 app.use(nodemailerRoutes);
 app.use(productsRoutes);

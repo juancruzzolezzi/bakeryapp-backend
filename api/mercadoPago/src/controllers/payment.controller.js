@@ -18,6 +18,12 @@ mercadopago.configure({
 // para que Mercado Pago cobre el total correcto (subtotal + envío).
 const DELIVERY_FEE = 2000;
 
+// A partir de este monto (sin contar el envío) el delivery sale gratis.
+// Tiene que coincidir con FREE_SHIPPING_THRESHOLD en Cart.jsx y
+// PaymentModal.jsx (ahí solo se le muestra al usuario, acá es donde se
+// decide de verdad si se cobra o no).
+const FREE_SHIPPING_THRESHOLD = 15000;
+
 export const createOrder = async (req, res) => {
   const { cartList, clientContact, contactMethod, deliveryType, address } = req.body;
 
@@ -43,8 +49,15 @@ export const createOrder = async (req, res) => {
     const productImages = cartList.map((product) => product.images?.[0] || "");
 
     // Si pide delivery, se suma el costo de envío como un item más (así el
-    // monto que cobra Mercado Pago ya incluye el envío, sin pasos manuales).
-    if (deliveryType === "delivery") {
+    // monto que cobra Mercado Pago ya incluye el envío, sin pasos manuales),
+    // salvo que el subtotal ya llegue al mínimo para envío gratis.
+    const subtotal = cartList.reduce(
+      (sum, product) => sum + product.price * product.quantity,
+      0
+    );
+    const envioGratis = subtotal >= FREE_SHIPPING_THRESHOLD;
+
+    if (deliveryType === "delivery" && !envioGratis) {
       items.push({
         title: "Costo de envío",
         currency_id: "ARS",
