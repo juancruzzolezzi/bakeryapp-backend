@@ -33,8 +33,6 @@ const ACCOUNT_DISCOUNT_RATE = 0.1;
 export const createOrder = async (req, res) => {
   const { cartList, clientContact, contactMethod, deliveryType, address } = req.body;
 
-  console.log(req.body);
-
   // "req.userId" lo pone optionalAuth (ver payment.routes.js) si vino un
   // token válido en el pedido: comprar sin cuenta sigue andando igual,
   // pero con sesión iniciada se aplica el descuento acá, no solo en la
