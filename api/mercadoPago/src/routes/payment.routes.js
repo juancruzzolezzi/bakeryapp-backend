@@ -1,10 +1,14 @@
 import { Router } from "express";
 import { createOrder, recieveWebhook } from "../controllers/payment.controller.js";
 import { successEvent } from "../controllers/success.controllers.js";
+import { optionalAuth } from "../../../auth/src/middleware/verifyToken.js";
 
 const router = Router();
 
-router.post("/create-order", createOrder);
+// "optionalAuth" (no "requireAuth"): comprar sin cuenta sigue funcionando
+// igual que siempre, pero si viene un token válido, createOrder aplica el
+// 10% de descuento por cuenta registrada.
+router.post("/create-order", optionalAuth, createOrder);
 
 router.get("/success", successEvent);
 

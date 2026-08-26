@@ -24,17 +24,31 @@ const DELIVERY_FEE = 2000;
 // decide de verdad si se cobra o no).
 const FREE_SHIPPING_THRESHOLD = 15000;
 
+// 10% OFF en toda la tienda para cuentas registradas (ver auth/), en toda
+// compra hecha con sesión iniciada. Tiene que coincidir con
+// ACCOUNT_DISCOUNT_RATE en Cart.jsx/PaymentModal.jsx (ahí solo se le
+// muestra al usuario, acá es donde se cobra el monto real con descuento).
+const ACCOUNT_DISCOUNT_RATE = 0.1;
+
 export const createOrder = async (req, res) => {
   const { cartList, clientContact, contactMethod, deliveryType, address } = req.body;
 
   console.log(req.body);
 
+  // "req.userId" lo pone optionalAuth (ver payment.routes.js) si vino un
+  // token válido en el pedido: comprar sin cuenta sigue andando igual,
+  // pero con sesión iniciada se aplica el descuento acá, no solo en la
+  // pantalla (si no, cualquiera podría "verlo" descontado sin estar
+  // registrado y pagar de menos).
+  const tieneDescuento = Boolean(req.userId);
 
   try {
     const items = cartList.map((product) => ({
       title: product.title,
       currency_id: "ARS",
-      unit_price: product.price,
+      unit_price: tieneDescuento
+        ? Math.round(product.price * (1 - ACCOUNT_DISCOUNT_RATE))
+        : product.price,
       quantity: product.quantity,
       picture_url: product.images?.[0] || "",
     }));
@@ -75,6 +89,7 @@ export const createOrder = async (req, res) => {
         delivery_type: deliveryType || "",
         address: deliveryType === "delivery" ? (address || "") : "",
         product_images: JSON.stringify(productImages),
+        discount_applied: tieneDescuento ? "10%" : "",
       },
       back_urls: {
         success: `${backendUrl}/success`,
