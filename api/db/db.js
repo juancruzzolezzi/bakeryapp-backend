@@ -30,6 +30,17 @@ db.exec(`
   );
 `);
 
+// Login con Google: guardamos el "sub" (id estable de Google) para poder
+// reconocer al usuario aunque cambie el nombre. Las cuentas creadas por
+// Google no tienen contraseña, así que password_hash queda como "".
+// ALTER idempotente: si la columna ya existe, SQLite tira error y lo
+// ignoramos.
+try {
+  db.exec("ALTER TABLE users ADD COLUMN google_id TEXT");
+} catch {
+  /* la columna ya existe */
+}
+
 // Seed con datos de ejemplo si las tablas están vacías
 const productCount = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
 

@@ -6,6 +6,7 @@ import { db } from "../../../db/db.js";
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const TOKEN_EXPIRES_IN = "30d";
 
 // Preparados una sola vez acá arriba (no adentro de cada handler): misma
@@ -16,6 +17,10 @@ const selectPublicUserById = db.prepare("SELECT id, email, username FROM users W
 const insertUser = db.prepare(
   "INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)"
 );
+const insertGoogleUser = db.prepare(
+  "INSERT INTO users (email, username, password_hash, google_id) VALUES (?, ?, '', ?)"
+);
+const linkGoogleId = db.prepare("UPDATE users SET google_id = ? WHERE id = ?");
 
 const firmarToken = (user) =>
   jwt.sign(
@@ -82,6 +87,62 @@ export const login = async (req, res) => {
 
   const token = firmarToken(user);
   res.json({ token, user: toPublicUser(user) });
+};
+
+// POST /auth/google: el frontend obtiene un "credential" (ID token JWT) de
+// Google Identity Services y lo manda acá. Lo validamos contra Google, y
+// si el email ya tenía cuenta la vinculamos; si no, creamos una nueva.
+export const googleLogin = async (req, res) => {
+  const { credential } = req.body;
+
+  if (!credential) {
+    return res.status(400).json({ error: "Falta el token de Google" });
+  }
+  if (!GOOGLE_CLIENT_ID) {
+    return res.status(500).json({ error: "Login con Google no configurado" });
+  }
+
+  try {
+    // tokeninfo valida firma, expiración y emisor por nosotros.
+    const resp = await fetch(
+      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`
+    );
+    if (!resp.ok) {
+      return res.status(401).json({ error: "Token de Google inválido" });
+    }
+    const payload = await resp.json();
+
+    const audienceOk = payload.aud === GOOGLE_CLIENT_ID;
+    const issuerOk =
+      payload.iss === "accounts.google.com" ||
+      payload.iss === "https://accounts.google.com";
+    if (!audienceOk || !issuerOk || payload.email_verified === "false") {
+      return res.status(401).json({ error: "Token de Google inválido" });
+    }
+
+    const email = (payload.email || "").trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ error: "Google no devolvió un email" });
+    }
+    const nombre = (payload.name || payload.given_name || email.split("@")[0]).trim();
+
+    let user = selectFullUserByEmail.get(email);
+
+    if (user) {
+      if (!user.google_id) {
+        linkGoogleId.run(payload.sub, user.id);
+      }
+    } else {
+      const result = insertGoogleUser.run(email, nombre, payload.sub);
+      user = { id: result.lastInsertRowid, email, username: nombre };
+    }
+
+    const token = firmarToken(user);
+    res.json({ token, user: toPublicUser(user) });
+  } catch (error) {
+    console.error("Error en login con Google:", error);
+    res.status(500).json({ error: "No se pudo ingresar con Google. Probá de nuevo." });
+  }
 };
 
 // GET /me: para restaurar la sesión al recargar la página (el frontend
