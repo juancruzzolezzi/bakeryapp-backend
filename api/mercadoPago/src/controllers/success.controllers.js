@@ -1,9 +1,10 @@
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
+import { getFrontendUrl } from "../../config.js";
 import dotenv from "dotenv";
 dotenv.config();
 
 export const successEvent = async (req, res) => {
-    const return_Url = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
+    const return_Url = getFrontendUrl();
     const isApproved = req.query && req.query.status === "approved" && req.query.payment_id;
     // Le avisamos al frontend por query param si fue aprobado (vacía el
     // carrito y muestra el mensaje de compra exitosa) o no (mensaje de

@@ -26,6 +26,7 @@ router.get("/products", (req, res) => {
     price: p.price,
     category: p.category,
     images: p.image ? [p.image] : [],
+    sold: p.sold ?? 0,
   }));
   res.json(products);
 });

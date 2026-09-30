@@ -1,5 +1,7 @@
 import mercadopago from "mercadopago";
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
+import { DELIVERY_ZONES, getFrontendUrl } from "../../config.js";
+import { db } from "../../../db/db.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -30,8 +32,44 @@ const FREE_SHIPPING_THRESHOLD = 15000;
 // muestra al usuario, acá es donde se cobra el monto real con descuento).
 const ACCOUNT_DISCOUNT_RATE = 0.1;
 
+const selectProductById = db.prepare("SELECT id, title, price, image FROM products WHERE id = ?");
+
 export const createOrder = async (req, res) => {
-  const { cartList, clientContact, contactMethod, deliveryType, address } = req.body;
+  const { clientContact, contactMethod, deliveryType, address, deliveryZone } = req.body;
+
+  if (!Array.isArray(req.body.cartList) || req.body.cartList.length === 0) {
+    return res.status(400).json({ error: "El carrito está vacío" });
+  }
+
+  // Título, precio y foto salen de la base, no de lo que manda el
+  // navegador: si no, cualquiera podía editar el carrito guardado en
+  // localStorage y pagar el precio que quisiera. Del carrito solo se usan
+  // el id y la cantidad.
+  const cartList = [];
+  for (const item of req.body.cartList) {
+    const product = selectProductById.get(item?.id);
+    const quantity = Number(item?.quantity);
+    if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+      return res.status(400).json({
+        error: "Hay un producto del carrito que ya no está disponible. Revisá tu pedido.",
+      });
+    }
+    cartList.push({
+      id: String(product.id),
+      title: product.title,
+      price: product.price,
+      quantity,
+      images: product.image ? [product.image] : [],
+    });
+  }
+
+  // Cobertura de delivery: se valida acá (no solo en el modal de pago) para
+  // que no se pueda cobrar un envío a una zona a la que no llegamos.
+  if (deliveryType === "delivery" && !DELIVERY_ZONES.includes(deliveryZone)) {
+    return res.status(400).json({
+      error: "Todavía no hacemos delivery a esa zona. Podés elegir Take Away.",
+    });
+  }
 
   // "req.userId" lo pone optionalAuth (ver payment.routes.js) si vino un
   // token válido en el pedido: comprar sin cuenta sigue andando igual,
@@ -51,7 +89,7 @@ export const createOrder = async (req, res) => {
       picture_url: product.images?.[0] || "",
     }));
 
-    const frontendUrl = process.env.FRONTEND_URL || "https://bakeryapp-frontend.vercel.app";
+    const frontendUrl = getFrontendUrl();
     const backendUrl = process.env.BACKEND_URL || "https://bakeryapp-backend-80a2.onrender.com";
 
     // Mercado Pago no garantiza devolver picture_url en additional_info.items
@@ -59,6 +97,12 @@ export const createOrder = async (req, res) => {
     // no para que lo leamos nosotros de vuelta). Guardamos las fotos nosotros
     // mismos en metadata, como ya hacemos con el contacto.
     const productImages = cartList.map((product) => product.images?.[0] || "");
+
+    // Ids y cantidades de lo que se compró, para sumar ventas por producto
+    // cuando el pago se apruebe (ver orderConfirmation.js): con eso se arma
+    // el orden "Más vendidos" del catálogo y los destacados del Home. El
+    // envío no se incluye (no es un producto).
+    const productSales = cartList.map((product) => [product.id, product.quantity]);
 
     // Si pide delivery, se suma el costo de envío como un item más (así el
     // monto que cobra Mercado Pago ya incluye el envío, sin pasos manuales),
@@ -86,6 +130,8 @@ export const createOrder = async (req, res) => {
         contact_method: contactMethod || "",
         delivery_type: deliveryType || "",
         address: deliveryType === "delivery" ? (address || "") : "",
+        delivery_zone: deliveryType === "delivery" ? deliveryZone : "",
+        product_sales: JSON.stringify(productSales),
         product_images: JSON.stringify(productImages),
         discount_applied: tieneDescuento ? "10%" : "",
       },

@@ -41,6 +41,24 @@ try {
   /* la columna ya existe */
 }
 
+// Unidades vendidas por producto (pagos aprobados), para ordenar el
+// catálogo por "Más vendidos" y elegir los destacados del Home. Se suma
+// en orderConfirmation.js. Mismo ALTER idempotente que google_id.
+try {
+  db.exec("ALTER TABLE products ADD COLUMN sold INTEGER NOT NULL DEFAULT 0");
+} catch {
+  /* la columna ya existe */
+}
+
+// Pagos cuyas ventas ya se sumaron: el webhook y el redirect de /success
+// pueden llegar los dos para el mismo pago (y Mercado Pago reintenta
+// webhooks), así que sin esto un mismo pedido se contaría varias veces.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS recorded_payments (
+    payment_id TEXT PRIMARY KEY
+  );
+`);
+
 // Seed con datos de ejemplo si las tablas están vacías
 const productCount = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
 

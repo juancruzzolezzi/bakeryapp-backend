@@ -29,9 +29,9 @@ const deliveryLabel = (deliveryType) =>
 export const generateBuyerHtml = ({ products, totalPay, deliveryType, address }) => {
   return `
     <div style="text-align: center; margin-bottom: 16px;">
-      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
+      <img src="${LOGO_URL}" alt="Bakery" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
     </div>
-    <p>¡Gracias por tu compra en BakeryApp!</p>
+    <p>¡Gracias por tu compra en Bakery!</p>
     <p>Detalles de tu pedido:</p>
     <table cellpadding="0" cellspacing="0">${productListHtml(products)}</table>
     <p>Total pagado: $${totalPay}</p>
@@ -46,9 +46,9 @@ export const generateOwnerHtml = ({ products, totalPay, clientContact, contactMe
   const contactLabel = contactMethod === "whatsapp" ? "WhatsApp" : "Instagram";
   return `
     <div style="text-align: center; margin-bottom: 16px;">
-      <img src="${LOGO_URL}" alt="BakeryApp" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
+      <img src="${LOGO_URL}" alt="Bakery" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
     </div>
-    <p>¡Nuevo pedido en BakeryApp!</p>
+    <p>¡Nuevo pedido en Bakery!</p>
     ${clientContact ? `<p><strong>Contactar por ${contactLabel}: ${clientContact}</strong></p>` : ""}
     ${deliveryType ? `<p><strong>Entrega:</strong> ${deliveryLabel(deliveryType)}</p>` : ""}
     ${deliveryType === "delivery" && address ? `<p><strong>Dirección de entrega:</strong> ${address}</p>` : ""}

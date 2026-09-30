@@ -3,9 +3,9 @@ import { generateBuyerHtml, generateOwnerHtml } from "../emailHtml.js";
 
 // Remitente: tiene que ser un mail verificado en Mailjet (Sender addresses and domains).
 const SENDER_EMAIL = process.env.MAILJET_SENDER_EMAIL || process.env.EMAIL_USER;
-const SENDER_NAME = "BakeryApp";
+const SENDER_NAME = "Bakery";
 
-const sendViaMailjet = async ({ to, subject, html }) => {
+export const sendViaMailjet = async ({ to, subject, html }) => {
   const auth = Buffer.from(`${MAILJET_API_KEY}:${MAILJET_SECRET_KEY}`).toString("base64");
 
   const response = await fetch(MAILJET_API_URL, {
@@ -46,7 +46,7 @@ export const sendEmail = async ({ products, totalPay, clientEmail, clientContact
       to: "comprador",
       promise: sendViaMailjet({
         to: clientEmail,
-        subject: "Confirmación de compra en BakeryApp",
+        subject: "Confirmación de compra en Bakery",
         html: generateBuyerHtml({ products, totalPay, deliveryType, address }),
       }),
     });
@@ -59,7 +59,7 @@ export const sendEmail = async ({ products, totalPay, clientEmail, clientContact
       to: "dueño",
       promise: sendViaMailjet({
         to: shopOwnerEmail,
-        subject: "Nuevo pedido en BakeryApp",
+        subject: "Nuevo pedido en Bakery",
         html: generateOwnerHtml({ products, totalPay, clientContact, contactMethod, deliveryType, address }),
       }),
     });
