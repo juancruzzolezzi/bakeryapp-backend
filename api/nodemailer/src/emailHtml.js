@@ -46,7 +46,13 @@ const botonHtml = (url, texto) => `
     </p>`;
 
 // Mail para el comprador: confirmación de compra, sin datos de contacto propios.
-export const generateBuyerHtml = ({ orderCode, trackingUrl, products, totalPay, deliveryType, address }) => {
+// "Cuándo" y la nota del pedido (ver mercadoPago/entrega.js); vacíos en
+// pedidos hechos antes de que existieran.
+const cuandoYNotaHtml = (cuando, nota) => `
+    ${cuando ? `<p><strong>Cuándo:</strong> ${escapeHtml(cuando)}</p>` : ""}
+    ${nota ? `<p><strong>Nota:</strong> ${escapeHtml(nota)}</p>` : ""}`;
+
+export const generateBuyerHtml = ({ orderCode, trackingUrl, products, totalPay, deliveryType, address, cuando, nota }) => {
   return `
     <div style="text-align: center; margin-bottom: 16px;">
       <img src="${LOGO_URL}" alt="Bakery" width="70" height="70" style="border-radius: 50%; object-fit: cover;" />
@@ -60,12 +66,13 @@ export const generateBuyerHtml = ({ orderCode, trackingUrl, products, totalPay, 
     <p>Total pagado: ${formatearPrecio(totalPay)}</p>
     ${deliveryType ? `<p><strong>Entrega:</strong> ${deliveryLabel(deliveryType)}</p>` : ""}
     ${deliveryType === "delivery" && address ? `<p><strong>Dirección:</strong> ${escapeHtml(address)}</p>` : ""}
+    ${cuandoYNotaHtml(cuando, nota)}
     <p>En breve te vamos a contactar para coordinar la entrega. ¡Gracias por elegirnos!</p>
     `;
 };
 
 // Mail para el dueño de la tienda: aviso de pedido nuevo con el contacto del comprador bien visible.
-export const generateOwnerHtml = ({ orderCode, panelUrl, products, totalPay, clientContact, contactMethod, deliveryType, address }) => {
+export const generateOwnerHtml = ({ orderCode, panelUrl, products, totalPay, clientContact, contactMethod, deliveryType, address, cuando, nota }) => {
   const contactLabel = contactMethod === "whatsapp" ? "WhatsApp" : "Instagram";
   return `
     <div style="text-align: center; margin-bottom: 16px;">
@@ -75,6 +82,7 @@ export const generateOwnerHtml = ({ orderCode, panelUrl, products, totalPay, cli
     ${clientContact ? `<p><strong>Contactar por ${contactLabel}: ${escapeHtml(clientContact)}</strong></p>` : ""}
     ${deliveryType ? `<p><strong>Entrega:</strong> ${deliveryLabel(deliveryType)}</p>` : ""}
     ${deliveryType === "delivery" && address ? `<p><strong>Dirección de entrega:</strong> ${escapeHtml(address)}</p>` : ""}
+    ${cuandoYNotaHtml(cuando, nota)}
     <p>Detalles de la compra:</p>
     <table cellpadding="0" cellspacing="0">${productListHtml(products)}</table>
     <p>Total pagado: ${formatearPrecio(totalPay)}</p>

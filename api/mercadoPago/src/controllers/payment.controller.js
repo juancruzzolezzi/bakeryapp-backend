@@ -2,6 +2,7 @@ import mercadopago from "mercadopago";
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import { DELIVERY_ZONES, getFrontendUrl } from "../../config.js";
 import { armarCarrito, armarItems } from "../../pricing.js";
+import { requiereEncargo, validarEntrega } from "../../entrega.js";
 import { db } from "../../../db/db.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -19,8 +20,13 @@ mercadopago.configure({
 
 const selectProductById = db.prepare("SELECT id, title, price, image FROM products WHERE id = ?");
 
+const recortar = (value, max) => String(value ?? "").trim().slice(0, max);
+
 export const createOrder = async (req, res) => {
-  const { clientContact, contactMethod, deliveryType, address, deliveryZone } = req.body;
+  const { clientContact, contactMethod, deliveryType, address, deliveryZone, cuando, fechaEntrega } = req.body;
+  // Nota libre para el local (dedicatoria, alergias, timbre). Va escapada
+  // en el mail (ver emailHtml.js).
+  const nota = recortar(req.body.nota, 300);
 
   // Precios, envío y descuento: ver pricing.js.
   const { cartList, error } = armarCarrito(req.body.cartList, (id) =>
@@ -36,6 +42,17 @@ export const createOrder = async (req, res) => {
     return res.status(400).json({
       error: "Todavía no hacemos delivery a esa zona. Podés elegir Take Away.",
     });
+  }
+
+  // Cuándo: "cuanto antes" o un día programado (las tortas, con 48 hs).
+  // Ver entrega.js.
+  const { entrega, error: errorEntrega } = validarEntrega({
+    cuando,
+    fecha: fechaEntrega,
+    hayEncargo: cartList.some((product) => requiereEncargo(product.title)),
+  });
+  if (errorEntrega) {
+    return res.status(400).json({ error: errorEntrega });
   }
 
   // "req.userId" lo pone optionalAuth (ver payment.routes.js) si vino un
@@ -77,6 +94,9 @@ export const createOrder = async (req, res) => {
         product_sales: JSON.stringify(productSales),
         product_images: JSON.stringify(productImages),
         discount_applied: tieneDescuento ? "10%" : "",
+        cuando: entrega?.cuando || "",
+        fecha_entrega: entrega?.fecha || "",
+        nota,
       },
       back_urls: {
         success: `${backendUrl}/success`,

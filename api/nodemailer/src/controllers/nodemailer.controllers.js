@@ -32,7 +32,7 @@ export const sendViaMailjet = async ({ to, subject, html }) => {
   }
 };
 
-export const sendEmail = async ({ products, totalPay, clientEmail, clientContact, contactMethod, deliveryType, address }) => {
+export const sendEmail = async ({ products, totalPay, clientEmail, clientContact, contactMethod, deliveryType, address, cuando, nota }) => {
   // El dueño de la tienda recibe el aviso del pedido: por defecto es la misma
   // cuenta configurada como EMAIL_USER, salvo que se configure otra en
   // SHOP_OWNER_EMAIL.
@@ -47,7 +47,7 @@ export const sendEmail = async ({ products, totalPay, clientEmail, clientContact
       promise: sendViaMailjet({
         to: clientEmail,
         subject: "Confirmación de compra en Bakery",
-        html: generateBuyerHtml({ products, totalPay, deliveryType, address }),
+        html: generateBuyerHtml({ products, totalPay, deliveryType, address, cuando, nota }),
       }),
     });
   }
@@ -60,7 +60,7 @@ export const sendEmail = async ({ products, totalPay, clientEmail, clientContact
       promise: sendViaMailjet({
         to: shopOwnerEmail,
         subject: "Nuevo pedido en Bakery",
-        html: generateOwnerHtml({ products, totalPay, clientContact, contactMethod, deliveryType, address }),
+        html: generateOwnerHtml({ products, totalPay, clientContact, contactMethod, deliveryType, address, cuando, nota }),
       }),
     });
   }

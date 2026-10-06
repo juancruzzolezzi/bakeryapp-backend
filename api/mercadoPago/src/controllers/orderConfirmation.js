@@ -1,6 +1,7 @@
 import mercadopago from "mercadopago";
 import { sendEmail } from "../../../nodemailer/src/controllers/nodemailer.controllers.js";
 import { db } from "../../../db/db.js";
+import { describirEntrega } from "../../entrega.js";
 
 const insertRecordedPayment = db.prepare(
   "INSERT OR IGNORE INTO recorded_payments (payment_id) VALUES (?)"
@@ -77,6 +78,10 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
   const deliveryType = body.metadata?.delivery_type || "";
   const deliveryZone = body.metadata?.delivery_zone || "";
   const address = [body.metadata?.address, deliveryZone].filter(Boolean).join(", ");
+  // Mercado Pago devuelve las claves de metadata en snake_case, como se
+  // mandaron (ver payment.controller.js).
+  const cuando = describirEntrega(body.metadata?.cuando, body.metadata?.fecha_entrega);
+  const nota = body.metadata?.nota || "";
 
   const results = await sendEmail({
     products,
@@ -86,6 +91,8 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
     contactMethod,
     deliveryType,
     address,
+    cuando,
+    nota,
   });
   return { results };
 };
