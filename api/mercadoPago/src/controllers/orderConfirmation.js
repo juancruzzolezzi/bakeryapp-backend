@@ -6,6 +6,10 @@ const insertRecordedPayment = db.prepare(
   "INSERT OR IGNORE INTO recorded_payments (payment_id) VALUES (?)"
 );
 const addSold = db.prepare("UPDATE products SET sold = sold + ? WHERE id = ?");
+const selectNotified = db.prepare("SELECT 1 FROM notified_payments WHERE payment_id = ?");
+const insertNotified = db.prepare(
+  "INSERT OR IGNORE INTO notified_payments (payment_id) VALUES (?)"
+);
 
 // Suma las unidades vendidas de un pago aprobado (ver "product_sales" en
 // payment.controller.js). En una transacción y registrando el paymentId:
@@ -19,18 +23,16 @@ const recordSales = db.transaction((paymentId, productSales) => {
   });
 });
 
-// Evita mandar el mail dos veces para el mismo pago (webhook + redirect de "success"
-// pueden dispararse ambos para el mismo pago). Se resetea si el servidor reinicia,
-// lo cual está bien: preferimos un duplicado ocasional antes que perder el aviso.
-const notifiedPaymentIds = new Set();
-
 // Punto único de verdad: dado un paymentId, busca el pago en Mercado Pago y,
 // si está aprobado, manda el mail de confirmación. Lo llaman tanto el webhook
 // (la vía confiable, no depende del navegador del comprador) como el redirect
 // de "success" (por si el webhook tarda o falla).
 export const sendOrderConfirmationEmail = async (paymentId, { force = false } = {}) => {
   if (!paymentId) return { skipped: "no paymentId" };
-  if (!force && notifiedPaymentIds.has(String(paymentId))) return { skipped: "ya notificado" };
+  // Evita mandar el mail dos veces para el mismo pago (webhook + redirect de
+  // "success" pueden llegar los dos, y Mercado Pago reintenta webhooks). Se
+  // mira antes de consultar a Mercado Pago para no gastar esa llamada.
+  if (!force && selectNotified.get(String(paymentId))) return { skipped: "ya notificado" };
 
   const payment = await mercadopago.payment.findById(paymentId);
   const body = payment?.body;
@@ -39,7 +41,10 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
     return { skipped: `status es '${body?.status}', no 'approved'` };
   }
 
-  notifiedPaymentIds.add(String(paymentId));
+  // Se marca recién acá, ya confirmado el pago: si webhook y /success llegan
+  // a la vez, solo el primero que inserta sigue adelante.
+  const { changes } = insertNotified.run(String(paymentId));
+  if (!force && changes === 0) return { skipped: "ya notificado" };
 
   try {
     recordSales(paymentId, JSON.parse(body.metadata?.product_sales || "[]"));

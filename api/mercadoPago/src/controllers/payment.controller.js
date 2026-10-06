@@ -1,6 +1,7 @@
 import mercadopago from "mercadopago";
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import { DELIVERY_ZONES, getFrontendUrl } from "../../config.js";
+import { armarCarrito, armarItems } from "../../pricing.js";
 import { db } from "../../../db/db.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -16,51 +17,17 @@ mercadopago.configure({
   access_token: process.env.ACCESS_TOKEN,
 });
 
-// Costo fijo de envío a domicilio. Se suma como un item más de la preferencia
-// para que Mercado Pago cobre el total correcto (subtotal + envío).
-const DELIVERY_FEE = 2000;
-
-// A partir de este monto (sin contar el envío) el delivery sale gratis.
-// Tiene que coincidir con FREE_SHIPPING_THRESHOLD en Cart.jsx y
-// PaymentModal.jsx (ahí solo se le muestra al usuario, acá es donde se
-// decide de verdad si se cobra o no).
-const FREE_SHIPPING_THRESHOLD = 15000;
-
-// 10% OFF en toda la tienda para cuentas registradas (ver auth/), en toda
-// compra hecha con sesión iniciada. Tiene que coincidir con
-// ACCOUNT_DISCOUNT_RATE en Cart.jsx/PaymentModal.jsx (ahí solo se le
-// muestra al usuario, acá es donde se cobra el monto real con descuento).
-const ACCOUNT_DISCOUNT_RATE = 0.1;
-
 const selectProductById = db.prepare("SELECT id, title, price, image FROM products WHERE id = ?");
 
 export const createOrder = async (req, res) => {
   const { clientContact, contactMethod, deliveryType, address, deliveryZone } = req.body;
 
-  if (!Array.isArray(req.body.cartList) || req.body.cartList.length === 0) {
-    return res.status(400).json({ error: "El carrito está vacío" });
-  }
-
-  // Título, precio y foto salen de la base, no de lo que manda el
-  // navegador: si no, cualquiera podía editar el carrito guardado en
-  // localStorage y pagar el precio que quisiera. Del carrito solo se usan
-  // el id y la cantidad.
-  const cartList = [];
-  for (const item of req.body.cartList) {
-    const product = selectProductById.get(item?.id);
-    const quantity = Number(item?.quantity);
-    if (!product || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
-      return res.status(400).json({
-        error: "Hay un producto del carrito que ya no está disponible. Revisá tu pedido.",
-      });
-    }
-    cartList.push({
-      id: String(product.id),
-      title: product.title,
-      price: product.price,
-      quantity,
-      images: product.image ? [product.image] : [],
-    });
+  // Precios, envío y descuento: ver pricing.js.
+  const { cartList, error } = armarCarrito(req.body.cartList, (id) =>
+    selectProductById.get(id)
+  );
+  if (error) {
+    return res.status(400).json({ error });
   }
 
   // Cobertura de delivery: se valida acá (no solo en el modal de pago) para
@@ -79,49 +46,25 @@ export const createOrder = async (req, res) => {
   const tieneDescuento = Boolean(req.userId);
 
   try {
-    const items = cartList.map((product) => ({
-      title: product.title,
-      currency_id: "ARS",
-      unit_price: tieneDescuento
-        ? Math.round(product.price * (1 - ACCOUNT_DISCOUNT_RATE))
-        : product.price,
-      quantity: product.quantity,
-      picture_url: product.images?.[0] || "",
-    }));
+    // Mercado Pago no garantiza devolver picture_url en additional_info.items
+    // al consultar el pago después (es un campo pensado para su propio checkout,
+    // no para que lo leamos nosotros de vuelta). Por eso las fotos
+    // ("productImages") las guardamos nosotros en metadata, como el contacto.
+    // Si pide delivery, el envío ya viene como un item más (salvo envío gratis).
+    const { items, productImages } = armarItems({
+      cartList,
+      conDescuento: tieneDescuento,
+      deliveryType,
+    });
 
     const frontendUrl = getFrontendUrl();
     const backendUrl = process.env.BACKEND_URL || "https://bakeryapp-backend-80a2.onrender.com";
-
-    // Mercado Pago no garantiza devolver picture_url en additional_info.items
-    // al consultar el pago después (es un campo pensado para su propio checkout,
-    // no para que lo leamos nosotros de vuelta). Guardamos las fotos nosotros
-    // mismos en metadata, como ya hacemos con el contacto.
-    const productImages = cartList.map((product) => product.images?.[0] || "");
 
     // Ids y cantidades de lo que se compró, para sumar ventas por producto
     // cuando el pago se apruebe (ver orderConfirmation.js): con eso se arma
     // el orden "Más vendidos" del catálogo y los destacados del Home. El
     // envío no se incluye (no es un producto).
     const productSales = cartList.map((product) => [product.id, product.quantity]);
-
-    // Si pide delivery, se suma el costo de envío como un item más (así el
-    // monto que cobra Mercado Pago ya incluye el envío, sin pasos manuales),
-    // salvo que el subtotal ya llegue al mínimo para envío gratis.
-    const subtotal = cartList.reduce(
-      (sum, product) => sum + product.price * product.quantity,
-      0
-    );
-    const envioGratis = subtotal >= FREE_SHIPPING_THRESHOLD;
-
-    if (deliveryType === "delivery" && !envioGratis) {
-      items.push({
-        title: "Costo de envío",
-        currency_id: "ARS",
-        unit_price: DELIVERY_FEE,
-        quantity: 1,
-      });
-      productImages.push("");
-    }
 
     const preference = {
       items,

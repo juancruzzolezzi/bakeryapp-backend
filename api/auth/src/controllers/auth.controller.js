@@ -42,6 +42,12 @@ export const register = async (req, res) => {
   if (!email || !username || !password) {
     return res.status(400).json({ error: "Faltan email, usuario o contraseña" });
   }
+  if (typeof email !== "string" || typeof username !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Datos inválidos" });
+  }
+  if (email.length > 160 || username.trim().length > 60 || password.length > 128) {
+    return res.status(400).json({ error: "Alguno de los datos es demasiado largo" });
+  }
   if (password.length < 6) {
     return res.status(400).json({ error: "La contraseña tiene que tener al menos 6 caracteres" });
   }
@@ -72,6 +78,9 @@ export const login = async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: "Faltan email o contraseña" });
   }
+  if (typeof email !== "string" || typeof password !== "string") {
+    return res.status(400).json({ error: "Datos inválidos" });
+  }
 
   const emailNormalizado = email.trim().toLowerCase();
   const user = selectFullUserByEmail.get(emailNormalizado);
@@ -95,7 +104,7 @@ export const login = async (req, res) => {
 export const googleLogin = async (req, res) => {
   const { credential } = req.body;
 
-  if (!credential) {
+  if (!credential || typeof credential !== "string") {
     return res.status(400).json({ error: "Falta el token de Google" });
   }
   if (!GOOGLE_CLIENT_ID) {

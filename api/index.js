@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import paymentRoutes from "./mercadoPago/src/routes/payment.routes.js";
-import nodemailerRoutes from "./nodemailer/src/routes/nodemailer.routes.js";
 import productsRoutes from "./db/products.routes.js";
 import authRoutes from "./auth/src/routes/auth.routes.js";
 import arrepentimientoRoutes from "./legal/arrepentimiento.routes.js";
@@ -21,6 +20,8 @@ dotenv.config();
 // proxy y el límite de intentos de login (ver middleware/rateLimit.js)
 // bloquearía a todos los usuarios juntos.
 app.set("trust proxy", 1);
+// No anunciar "X-Powered-By: Express" en cada respuesta.
+app.disable("x-powered-by");
 
 // CORS: solo el dominio del sitio puede llamar a la API desde un
 // navegador. FRONTEND_URL admite varios dominios separados por coma (ej:
@@ -69,10 +70,20 @@ app.use(
 app.get("/health", (req, res) => res.status(200).send("ok"));
 
 app.use(paymentRoutes);
-app.use(nodemailerRoutes);
 app.use(productsRoutes);
 app.use(authRoutes);
 app.use(arrepentimientoRoutes);
 
+// Cualquier error que llegue hasta acá (ej: un body con JSON mal armado)
+// responde JSON como el resto de la API, en vez de la página HTML de error
+// de Express con el stack trace.
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const status = err.status || err.statusCode || 500;
+  if (status >= 500) console.error("Error no manejado:", err);
+  res.status(status).json({
+    error: status >= 500 ? "Error interno del servidor" : "Pedido inválido",
+  });
+});
 app.listen(PORT);
 console.log("Server listening on port", PORT);

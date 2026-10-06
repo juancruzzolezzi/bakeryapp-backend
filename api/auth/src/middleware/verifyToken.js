@@ -29,8 +29,12 @@ export const requireAuth = (req, res, next) => {
 
 // Para rutas donde el login es OPCIONAL pero cambia el resultado si hay
 // sesión (ej: /create-order, que aplica 10% de descuento a cuentas
-// registradas). Si el token es inválido, sigue como invitado en vez de
-// rechazar la petición entera.
+// registradas). Sin token, sigue como invitado.
+//
+// Con un token vencido o inválido responde 401 en vez de seguir como
+// invitado en silencio: si no, el cliente veía el 10% OFF en la pantalla
+// (el frontend todavía lo creía logueado) y Mercado Pago le cobraba el
+// precio completo. Con el 401, el frontend cierra la sesión y le avisa.
 export const optionalAuth = (req, res, next) => {
   const token = leerToken(req);
   if (!token) {
@@ -41,8 +45,11 @@ export const optionalAuth = (req, res, next) => {
   try {
     const payload = jwt.verify(token, JWT_SECRET);
     req.userId = payload.id;
+    next();
   } catch {
-    req.userId = null;
+    res.status(401).json({
+      error: "Tu sesión venció. Volvé a iniciar sesión para tener el 10% OFF.",
+      code: "SESSION_EXPIRED",
+    });
   }
-  next();
 };

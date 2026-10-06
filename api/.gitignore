@@ -27,3 +27,6 @@ ngrok.exe
 
 # Environment variables
 .env
+
+# logs de desarrollo
+*.log

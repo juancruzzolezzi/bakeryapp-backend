@@ -59,6 +59,15 @@ db.exec(`
   );
 `);
 
+// Pagos cuyo mail de confirmación ya salió. Antes era un Set en memoria:
+// como Render reinicia el servidor seguido, un reintento del webhook
+// después de un reinicio mandaba el mail de nuevo.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS notified_payments (
+    payment_id TEXT PRIMARY KEY
+  );
+`);
+
 // Seed con datos de ejemplo si las tablas están vacías
 const productCount = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
 

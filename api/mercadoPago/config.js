@@ -1,4 +1,6 @@
-export const PORT = 3000;
+// Render (y la mayoría de los hostings) indica el puerto en PORT; 3000 queda
+// para desarrollo local.
+export const PORT = Number(process.env.PORT) || 3000;
 
 export const HOST = `http://localhost:${PORT}`;
 
