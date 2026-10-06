@@ -50,8 +50,9 @@ export const armarCarrito = (rawCartList, getProduct) => {
 };
 
 // Items de la preferencia de Mercado Pago (con descuento si corresponde, y
-// el envío como un item más) y las fotos en el mismo orden, que se guardan
-// en metadata (ver payment.controller.js).
+// el envío como un item más), las fotos en el mismo orden, que se guardan
+// en metadata (ver payment.controller.js), y los montos del pedido para
+// guardarlo en la base (ver orders/).
 export const armarItems = ({ cartList, conDescuento, deliveryType }) => {
   const items = cartList.map((product) => ({
     title: product.title,
@@ -72,15 +73,25 @@ export const armarItems = ({ cartList, conDescuento, deliveryType }) => {
   );
   const envioGratis = subtotal >= FREE_SHIPPING_THRESHOLD;
 
-  if (deliveryType === "delivery" && !envioGratis) {
+  const conDescuentoTotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0);
+  const envio = deliveryType === "delivery" && !envioGratis ? DELIVERY_FEE : 0;
+
+  if (envio > 0) {
     items.push({
       title: "Costo de envío",
       currency_id: "ARS",
-      unit_price: DELIVERY_FEE,
+      unit_price: envio,
       quantity: 1,
     });
     productImages.push("");
   }
 
-  return { items, productImages };
+  const montos = {
+    subtotal,
+    descuento: subtotal - conDescuentoTotal,
+    envio,
+    total: conDescuentoTotal + envio,
+  };
+
+  return { items, productImages, montos };
 };

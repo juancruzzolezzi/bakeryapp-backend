@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import mercadopago from "mercadopago";
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import { DELIVERY_ZONES, getFrontendUrl } from "../../config.js";
@@ -18,6 +19,15 @@ mercadopago.configure({
 });
 
 const selectProductById = db.prepare("SELECT id, title, price, image FROM products WHERE id = ?");
+const insertOrder = db.prepare(`
+  INSERT INTO orders (token, user_id, items, subtotal, discount, shipping, total,
+                      delivery_type, delivery_zone, address, contact, contact_method)
+  VALUES (@token, @userId, @items, @subtotal, @discount, @shipping, @total,
+          @deliveryType, @deliveryZone, @address, @contact, @contactMethod)
+`);
+const deleteOrder = db.prepare("DELETE FROM orders WHERE token = ? AND status = 'pendiente_pago'");
+
+const recortar = (value, max) => String(value ?? "").trim().slice(0, max);
 
 export const createOrder = async (req, res) => {
   const { clientContact, contactMethod, deliveryType, address, deliveryZone } = req.body;
@@ -45,16 +55,47 @@ export const createOrder = async (req, res) => {
   // registrado y pagar de menos).
   const tieneDescuento = Boolean(req.userId);
 
+  // Token al azar del link de seguimiento (ver orders/). Viaja a Mercado
+  // Pago como "external_reference": así el webhook y /success saben qué
+  // pedido de la base corresponde al pago.
+  const orderToken = crypto.randomBytes(16).toString("hex");
+
   try {
     // Mercado Pago no garantiza devolver picture_url en additional_info.items
     // al consultar el pago después (es un campo pensado para su propio checkout,
     // no para que lo leamos nosotros de vuelta). Por eso las fotos
     // ("productImages") las guardamos nosotros en metadata, como el contacto.
     // Si pide delivery, el envío ya viene como un item más (salvo envío gratis).
-    const { items, productImages } = armarItems({
+    const { items, productImages, montos } = armarItems({
       cartList,
       conDescuento: tieneDescuento,
       deliveryType,
+    });
+
+    // El pedido se guarda antes de ir a Mercado Pago, como "pendiente_pago".
+    // Pasa a "recibido" cuando se aprueba el pago (ver orderConfirmation.js).
+    const esDelivery = deliveryType === "delivery";
+    insertOrder.run({
+      token: orderToken,
+      userId: req.userId || null,
+      items: JSON.stringify(
+        cartList.map((product, i) => ({
+          id: product.id,
+          title: product.title,
+          quantity: product.quantity,
+          unit_price: items[i].unit_price,
+          image: product.images?.[0] || "",
+        }))
+      ),
+      subtotal: montos.subtotal,
+      discount: montos.descuento,
+      shipping: montos.envio,
+      total: montos.total,
+      deliveryType: esDelivery ? "delivery" : "takeaway",
+      deliveryZone: esDelivery ? deliveryZone : "",
+      address: esDelivery ? recortar(address, 200) : "",
+      contact: recortar(clientContact, 80),
+      contactMethod: contactMethod === "whatsapp" ? "whatsapp" : "instagram",
     });
 
     const frontendUrl = getFrontendUrl();
@@ -77,7 +118,9 @@ export const createOrder = async (req, res) => {
         product_sales: JSON.stringify(productSales),
         product_images: JSON.stringify(productImages),
         discount_applied: tieneDescuento ? "10%" : "",
+        order_token: orderToken,
       },
+      external_reference: orderToken,
       back_urls: {
         success: `${backendUrl}/success`,
         // El carrito NO se toca acá (solo se vacía si el pago se aprueba,
@@ -95,6 +138,8 @@ export const createOrder = async (req, res) => {
     res.status(200).json(result.body);
   } catch (error) {
       console.error("Error:", error);
+      // Si Mercado Pago falló, el pedido nunca se va a poder pagar.
+      deleteOrder.run(orderToken);
       res.status(500).send("Internal Server Error");
   }
 };

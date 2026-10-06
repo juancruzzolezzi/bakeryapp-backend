@@ -68,6 +68,38 @@ db.exec(`
   );
 `);
 
+// Pedidos: se crean al ir a Mercado Pago ("pendiente_pago") y pasan a
+// "recibido" cuando se aprueba el pago. De ahí en adelante los avanza el
+// local desde el panel (ver orders/). "token" es el valor al azar del
+// link de seguimiento que recibe el cliente; "items" es JSON con lo que
+// se cobró (precio unitario ya con descuento si correspondía).
+db.exec(`
+  CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    token TEXT NOT NULL UNIQUE,
+    user_id INTEGER,
+    status TEXT NOT NULL DEFAULT 'pendiente_pago',
+    items TEXT NOT NULL,
+    subtotal REAL NOT NULL,
+    discount REAL NOT NULL DEFAULT 0,
+    shipping REAL NOT NULL DEFAULT 0,
+    total REAL NOT NULL,
+    delivery_type TEXT,
+    delivery_zone TEXT,
+    address TEXT,
+    contact TEXT,
+    contact_method TEXT,
+    payment_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    paid_at TEXT,
+    preparing_at TEXT,
+    shipped_at TEXT,
+    delivered_at TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_orders_user ON orders (user_id);
+  CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);
+`);
+
 // Seed con datos de ejemplo si las tablas están vacías
 const productCount = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
 

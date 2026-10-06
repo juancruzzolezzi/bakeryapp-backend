@@ -5,6 +5,7 @@ import paymentRoutes from "./mercadoPago/src/routes/payment.routes.js";
 import productsRoutes from "./db/products.routes.js";
 import authRoutes from "./auth/src/routes/auth.routes.js";
 import arrepentimientoRoutes from "./legal/arrepentimiento.routes.js";
+import ordersRoutes from "./orders/orders.routes.js";
 import { PORT } from "./mercadoPago/config.js";
 import morgan from "morgan";
 import cors from "cors";
@@ -73,6 +74,7 @@ app.use(paymentRoutes);
 app.use(productsRoutes);
 app.use(authRoutes);
 app.use(arrepentimientoRoutes);
+app.use(ordersRoutes);
 
 // Cualquier error que llegue hasta acá (ej: un body con JSON mal armado)
 // responde JSON como el resto de la API, en vez de la página HTML de error

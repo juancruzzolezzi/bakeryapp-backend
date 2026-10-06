@@ -1,5 +1,6 @@
 import { sendOrderConfirmationEmail } from "./orderConfirmation.js";
 import { getFrontendUrl } from "../../config.js";
+import { esTokenValido } from "../../../orders/estados.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -9,8 +10,12 @@ export const successEvent = (req, res) => {
     // Le avisamos al frontend por query param si fue aprobado (vacía el
     // carrito y muestra el mensaje de compra exitosa) o no (mensaje de
     // error, sin tocar el carrito).
+    // Con el pago aprobado, se suma el token del pedido (Mercado Pago lo
+    // devuelve como "external_reference") para que el cartel de compra
+    // exitosa tenga el botón "Seguir mi pedido".
+    const token = esTokenValido(req.query.external_reference) ? req.query.external_reference : "";
     const redirectUrl = isApproved
-      ? `${return_Url}/?payment=success`
+      ? `${return_Url}/?payment=success${token ? `&pedido=${token}` : ""}`
       : `${return_Url}/?payment=failure`;
 
     // Primero se lo devuelve a la tienda: antes esperaba a que se consultara

@@ -58,6 +58,23 @@ test("el mínimo para envío gratis se mide sin descuento", () => {
   assert.equal(total(items), 13500);
 });
 
+test("los montos del pedido coinciden con lo que cobra Mercado Pago", () => {
+  const { cartList } = armarCarrito([{ id: "1", quantity: 1 }, { id: "2", quantity: 1 }], getProduct);
+  const casos = [
+    { conDescuento: false, deliveryType: "delivery" },
+    { conDescuento: true, deliveryType: "delivery" },
+    { conDescuento: true, deliveryType: "takeaway" },
+  ];
+  for (const caso of casos) {
+    const { items, montos } = armarItems({ cartList, ...caso });
+    assert.equal(montos.total, total(items), JSON.stringify(caso));
+    assert.equal(montos.subtotal, 12500);
+    assert.equal(montos.total, montos.subtotal - montos.descuento + montos.envio);
+  }
+  const { montos } = armarItems({ cartList, conDescuento: true, deliveryType: "takeaway" });
+  assert.deepEqual(montos, { subtotal: 12500, descuento: 1250, envio: 0, total: 11250 });
+});
+
 test("con cuenta se aplica 10% por unidad, redondeado", () => {
   const { cartList } = armarCarrito([{ id: "1", quantity: 1 }, { id: "2", quantity: 3 }], getProduct);
   const { items } = armarItems({ cartList, conDescuento: true, deliveryType: "takeaway" });

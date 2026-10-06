@@ -1,11 +1,21 @@
 import mercadopago from "mercadopago";
 import { sendEmail } from "../../../nodemailer/src/controllers/nodemailer.controllers.js";
 import { db } from "../../../db/db.js";
+import { getFrontendUrl } from "../../config.js";
+import { codigoPedido, esTokenValido } from "../../../orders/estados.js";
 
 const insertRecordedPayment = db.prepare(
   "INSERT OR IGNORE INTO recorded_payments (payment_id) VALUES (?)"
 );
 const addSold = db.prepare("UPDATE products SET sold = sold + ? WHERE id = ?");
+// Marca el pedido como pagado. Solo si seguía "pendiente_pago": si el
+// webhook y /success llegan los dos, el segundo no cambia nada, y nunca
+// pisa un estado que el local ya avanzó.
+const markOrderPaid = db.prepare(`
+  UPDATE orders SET status = 'recibido', payment_id = ?, paid_at = datetime('now')
+  WHERE token = ? AND status = 'pendiente_pago'
+`);
+const selectOrderByToken = db.prepare("SELECT id, token FROM orders WHERE token = ?");
 const selectNotified = db.prepare("SELECT 1 FROM notified_payments WHERE payment_id = ?");
 const insertNotified = db.prepare(
   "INSERT OR IGNORE INTO notified_payments (payment_id) VALUES (?)"
@@ -39,6 +49,15 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
 
   if (!body || body.status !== "approved") {
     return { skipped: `status es '${body?.status}', no 'approved'` };
+  }
+
+  // Pedido de la base (ver payment.controller.js). Los pagos hechos antes
+  // de que existiera la tabla de pedidos no traen token: siguen andando,
+  // solo que sin link de seguimiento.
+  const orderToken = esTokenValido(body.external_reference) ? body.external_reference : null;
+  const order = orderToken ? selectOrderByToken.get(orderToken) : null;
+  if (order) {
+    markOrderPaid.run(String(paymentId), orderToken);
   }
 
   // Se marca recién acá, ya confirmado el pago: si webhook y /success llegan
@@ -79,6 +98,9 @@ export const sendOrderConfirmationEmail = async (paymentId, { force = false } = 
   const address = [body.metadata?.address, deliveryZone].filter(Boolean).join(", ");
 
   const results = await sendEmail({
+    orderCode: order ? codigoPedido(order.id) : "",
+    trackingUrl: order ? `${getFrontendUrl()}/pedido/${order.token}` : "",
+    panelUrl: `${getFrontendUrl()}/panel`,
     products,
     totalPay,
     clientEmail,
