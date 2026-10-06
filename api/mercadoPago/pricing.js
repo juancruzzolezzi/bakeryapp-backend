@@ -41,6 +41,8 @@ export const armarCarrito = (rawCartList, getProduct) => {
     cartList.push({
       id: String(product.id),
       title: product.title,
+      // Para saber si es una torta entera (48 hs, ver entrega.js).
+      description: product.description || "",
       price: product.price,
       quantity,
       images: product.image ? [product.image] : [],

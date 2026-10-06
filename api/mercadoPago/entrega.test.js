@@ -6,13 +6,15 @@ import { describirEntrega, fechaArgentina, requiereEncargo, validarEntrega } fro
 // Martes 6 de octubre de 2026, 15:40 en Argentina.
 const MARTES = new Date("2026-10-06T18:40:00Z");
 
-test("qué productos se hornean por encargo", () => {
-  assert.ok(requiereEncargo("Torta Red Velvet"));
-  assert.ok(requiereEncargo("Torta de Zanahoria Sin TACC"));
-  assert.ok(requiereEncargo("Cheesecake de Frutos Rojos"));
-  assert.ok(!requiereEncargo("Brownie con Nueces"));
-  assert.ok(!requiereEncargo("Cookies de Chocolate"));
-  assert.ok(!requiereEncargo(""));
+test("solo las tortas enteras se hornean por encargo", () => {
+  assert.ok(requiereEncargo("Torta Red Velvet", "Torta red velvet con frosting de queso crema"));
+  assert.ok(requiereEncargo("Torta de Zanahoria Sin TACC", "Torta entera, 12 porciones"));
+  assert.ok(requiereEncargo("Cheesecake de Frutos Rojos", ""));
+  assert.ok(!requiereEncargo("Torta Red Velvet", "Torta red velvet con frosting de queso crema (por porción)"));
+  assert.ok(!requiereEncargo("Cheesecake de Maracuyá", "Cheesecake de maracuyá (Por Porcion)"));
+  assert.ok(!requiereEncargo("Brownie con Nueces", "Brownie húmedo con nueces"));
+  assert.ok(!requiereEncargo("Cookies de Chocolate", ""));
+  assert.ok(!requiereEncargo("", ""));
 });
 
 test("la fecha de hoy se toma en hora de Argentina", () => {

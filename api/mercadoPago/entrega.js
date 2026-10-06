@@ -18,11 +18,14 @@ export const DIAS_ENCARGO = 2;
 // Hasta cuántos días para adelante se puede programar.
 export const DIAS_MAXIMO = 30;
 
-// Productos que se hornean por encargo (48 hs). Por nombre y no por
-// categoría: en "Tortas" también hay brownies por unidad, y hay tortas en
-// "Sin TACC" y "Vegano".
-export const requiereEncargo = (titulo) =>
-  /^(torta|cheesecake)\b/i.test(String(titulo || "").trim());
+// Productos que se hornean por encargo (48 hs): las tortas ENTERAS. Es una
+// torta por el nombre (no por categoría: en "Tortas" también hay brownies,
+// y hay tortas en "Sin TACC" y "Vegano"), y es entera si la descripción
+// no dice "(por porción)", la misma marca con la que el catálogo muestra
+// la etiqueta "Por porción" (ver utils/ventaTag.js en el frontend).
+export const requiereEncargo = (titulo, descripcion) =>
+  /^(torta|cheesecake)\b/i.test(String(titulo || "").trim()) &&
+  !/\(por porci[oó]n\)/i.test(String(descripcion || ""));
 
 // "2026-10-06" según la hora de Argentina.
 export const fechaArgentina = (ahora = new Date()) =>

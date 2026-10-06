@@ -18,7 +18,7 @@ mercadopago.configure({
   access_token: process.env.ACCESS_TOKEN,
 });
 
-const selectProductById = db.prepare("SELECT id, title, price, image FROM products WHERE id = ?");
+const selectProductById = db.prepare("SELECT id, title, description, price, image FROM products WHERE id = ?");
 
 const recortar = (value, max) => String(value ?? "").trim().slice(0, max);
 
@@ -44,12 +44,12 @@ export const createOrder = async (req, res) => {
     });
   }
 
-  // Cuándo: "cuanto antes" o un día programado (las tortas, con 48 hs).
-  // Ver entrega.js.
+  // Cuándo: "cuanto antes" o un día programado (las tortas enteras, con
+  // 48 hs). Ver entrega.js.
   const { entrega, error: errorEntrega } = validarEntrega({
     cuando,
     fecha: fechaEntrega,
-    hayEncargo: cartList.some((product) => requiereEncargo(product.title)),
+    hayEncargo: cartList.some((product) => requiereEncargo(product.title, product.description)),
   });
   if (errorEntrega) {
     return res.status(400).json({ error: errorEntrega });
